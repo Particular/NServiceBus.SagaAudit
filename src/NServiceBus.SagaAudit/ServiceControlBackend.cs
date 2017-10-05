@@ -11,6 +11,7 @@
     using Performance.TimeToBeReceived;
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using SimpleJson;
     using Transport;
     using Unicast.Transport;
 
@@ -48,7 +49,7 @@
 
         static byte[] Serialize(object messageToSend)
         {
-            return Encoding.UTF8.GetBytes(SimpleJson.SimpleJson.SerializeObject(messageToSend));
+            return Encoding.UTF8.GetBytes(SimpleJson.SerializeObject(messageToSend, serializerStrategy));
         }
 
         public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction)
@@ -84,6 +85,7 @@ Please ensure that the Particular ServiceControl queue specified is correct.";
         string destinationQueue;
         string localAddress;
 
+        static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
         readonly string sendIntent = MessageIntentEnum.Send.ToString();
     }
