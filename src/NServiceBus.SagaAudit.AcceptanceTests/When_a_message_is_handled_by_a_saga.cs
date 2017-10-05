@@ -77,7 +77,7 @@
                 {
                     var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
 
-                    c.SagaPlugin(receiverEndpoint);
+                    c.AuditSagaStateChanges(receiverEndpoint);
                     c.AuditProcessedMessagesTo(receiverEndpoint);
                 });
             }

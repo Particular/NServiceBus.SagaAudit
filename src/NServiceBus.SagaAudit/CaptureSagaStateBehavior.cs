@@ -3,36 +3,31 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using NServiceBus;
     using Pipeline;
     using Sagas;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using Settings;
+    using SimpleJson;
     using Transport;
 
     class CaptureSagaStateBehavior : Behavior<IInvokeHandlerContext>
     {
         ServiceControlBackend backend;
+        Func<object, Dictionary<string, string>> customSagaEntitySerialization;
         string endpointName;
-        JsonSerializerSettings serializerSettings;
+        static SagaEntitySerializationStrategy sagaEntitySerializationStrategy = new SagaEntitySerializationStrategy();
 
-        public CaptureSagaStateBehavior(ReadOnlySettings settings, ServiceControlBackend backend)
+        CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
         {
-            endpointName = settings.EndpointName();
+            this.endpointName = endpointName;
             this.backend = backend;
-
-            serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Objects,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
-            };
+            this.customSagaEntitySerialization = customSagaEntitySerialization;
         }
 
         public class CaptureSagaStateRegistration : RegisterStep
         {
-            public CaptureSagaStateRegistration()
-                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes")
+            public CaptureSagaStateRegistration(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
+                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes", b => new CaptureSagaStateBehavior(endpointName, backend, customSagaEntitySerialization))
             {
                 InsertBefore("InvokeSaga");
             }
@@ -71,8 +66,15 @@
             }
 
             var saga = activeSagaInstance.Instance;
-
-            var sagaStateString = JsonConvert.SerializeObject(saga.Entity, serializerSettings);
+            string sagaStateString;
+            if (customSagaEntitySerialization != null)
+            {
+                sagaStateString = SimpleJson.SerializeObject(customSagaEntitySerialization(saga.Entity));
+            }
+            else
+            {
+                sagaStateString = SimpleJson.SerializeObject(saga.Entity, sagaEntitySerializationStrategy);
+            }
 
             var messageType = context.MessageMetadata.MessageType.FullName;
             var headers = context.MessageHeaders;

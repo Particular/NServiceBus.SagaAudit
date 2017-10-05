@@ -99,7 +99,7 @@
                 EndpointSetup<DefaultServer>(config =>
                 {
                     var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    config.SagaPlugin(receiverEndpoint);
+                    config.AuditSagaStateChanges(receiverEndpoint);
                     config.EnableFeature<TimeoutManager>();
                 });
             }

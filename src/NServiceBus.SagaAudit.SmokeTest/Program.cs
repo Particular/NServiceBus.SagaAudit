@@ -35,7 +35,7 @@ namespace ServiceControl.Plugin.Nsb6.SagaAudit.SmokeTest
             busConfiguration.UsePersistence<InMemoryPersistence>();
             busConfiguration.SendFailedMessagesTo("error");
             busConfiguration.AuditProcessedMessagesTo("audit");
-            busConfiguration.SagaPlugin("particular.servicecontrol");
+            busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 
             var routing = busConfiguration.UseTransport<MsmqTransport>().Routing();
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");

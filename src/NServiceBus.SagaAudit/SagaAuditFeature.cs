@@ -1,8 +1,11 @@
 ﻿namespace NServiceBus.SagaAudit
 {
+    using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using Features;
+    using Transport;
 
     class SagaAuditFeature : Feature
     {
@@ -15,30 +18,32 @@
         /// <summary>Called when the features is activated.</summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<ServiceControlBackend>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<CaptureSagaStateBehavior>(DependencyLifecycle.SingleInstance);
+            var serviceControlQueue = context.Settings.Get<string>("NServiceBus.SagaAudit.Queue");
+            var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>>("NServiceBus.SagaAudit.Serialization");
 
-            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration());
+            var backend = new ServiceControlBackend(serviceControlQueue, context.Settings.LocalAddress());
 
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), backend, customSagaEntitySerialization));
             context.Pipeline.Register("ReportSagaStateChanges", new CaptureSagaResultingMessagesBehavior(), "Reports the saga state changes to ServiceControl");
-
             context.Pipeline.Register("AuditInvokedSaga", new AuditInvokedSagaBehavior(), "Adds audit saga information");
 
-            context.RegisterStartupTask(b => new SagaAuditStartupTask(b.Build<ServiceControlBackend>()));
+            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.Build<IDispatchMessages>()));
         }
 
         class SagaAuditStartupTask : FeatureStartupTask
         {
             ServiceControlBackend serviceControlBackend;
+            IDispatchMessages dispatcher;
 
-            public SagaAuditStartupTask(ServiceControlBackend backend)
+            public SagaAuditStartupTask(ServiceControlBackend backend, IDispatchMessages dispatcher)
             {
                 serviceControlBackend = backend;
+                this.dispatcher = dispatcher;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                return serviceControlBackend.VerifyIfServiceControlQueueExists();
+                return serviceControlBackend.Start(dispatcher);
             }
 
             protected override Task OnStop(IMessageSession session)
