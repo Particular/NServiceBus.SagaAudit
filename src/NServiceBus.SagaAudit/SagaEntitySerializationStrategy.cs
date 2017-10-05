@@ -3,6 +3,7 @@ namespace NServiceBus.SagaAudit
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using SimpleJson;
     using SimpleJson.Reflection;
@@ -58,7 +59,7 @@ namespace NServiceBus.SagaAudit
         {
             if (input is TimeSpan)
             {
-                output = ((TimeSpan)input).ToString("g");
+                output = ((TimeSpan)input).ToString("g", CultureInfo.InvariantCulture);
                 return true;
             }
             output = null;
