@@ -2,84 +2,85 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Saga;
     using NUnit.Framework;
 
     public class When_a_message_is_handled_by_a_saga : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_populate_InvokedSagas_header_for_single_saga_audits()
+        public void Should_populate_InvokedSagas_header_for_single_saga_audits()
         {
-            var context = await Scenario.Define<Context>()
+            var context = Scenario.Define<Context>()
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<EndpointWithASaga>(b => b.When((messageSession, ctx) =>
-                    messageSession.SendLocal(new MessageToBeAudited
+                .WithEndpoint<EndpointWithASaga>(b => b.When(bus =>
+                    bus.SendLocal(new MessageToBeAudited
                     {
-                        Id = ctx.TestRunId
-                    })
-                ))
+                        Id = Guid.NewGuid()
+                    })))
                 .Done(c => c.MessageAudited)
                 .Run();
 
             string invokedSagasHeaderValue;
+
+            Assert.IsTrue(context.MessageAudited);
             Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.AreEqual($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}", invokedSagasHeaderValue);
         }
 
         [Test]
-        public async Task Should_populate_InvokedSagas_header_for_multiple_saga_audits()
+        public void Should_populate_InvokedSagas_header_for_multiple_saga_audits()
         {
-            var context = await Scenario.Define<Context>()
+            var context = Scenario.Define<Context>()
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<EndpointWithASaga>(b => b.When((messageSession, ctx) =>
-                    messageSession.SendLocal(new MessageToBeAuditedByMultiple
+                .WithEndpoint<EndpointWithASaga>(b => b.When(bus =>
+                    bus.SendLocal(new MessageToBeAuditedByMultiple
                     {
-                        Id = ctx.TestRunId
+                        Id = Guid.NewGuid()
                     })
                 ))
                 .Done(c => c.MessageAudited)
                 .Run();
 
             string invokedSagasHeaderValue;
+
+            Assert.IsTrue(context.MessageAudited);
             Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), "TheEndpointsSaga header value is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), "TheEndpointsSagaAlternative header value is missing");
         }
 
-        class MessageToBeAudited : ICommand
+        public class MessageToBeAudited : IMessage
         {
             public Guid Id { get; set; }
         }
 
-        class MessageToBeAuditedByMultiple : ICommand
+        public class MessageToBeAuditedByMultiple : ICommand
         {
             public Guid Id { get; set; }
         }
 
-        class Context : ScenarioContext
+        public class Context : ScenarioContext
         {
             public bool MessageAudited { get; set; }
-            public IReadOnlyDictionary<string, string> Headers { get; set; }
+            public IDictionary<string, string> Headers { get; set; }
             public Guid SagaId { get; set; }
             public Guid AlternativeSagaId { get; set; }
         }
 
-        class EndpointWithASaga : EndpointConfigurationBuilder
+        public class EndpointWithASaga : EndpointConfigurationBuilder
         {
             public EndpointWithASaga()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-
-                    c.AuditSagaStateChanges(receiverEndpoint);
-                    c.AuditProcessedMessagesTo(receiverEndpoint);
-                });
+                    c.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
+                }).AuditTo<FakeServiceControl>();
             }
 
             public class TheEndpointsSaga : Saga<TheEndpointsSagaData>, IAmStartedByMessages<MessageToBeAudited>, IAmStartedByMessages<MessageToBeAuditedByMultiple>
@@ -93,18 +94,16 @@
                 }
 
 
-                public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
+                public void Handle(MessageToBeAudited message)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.SagaId = Data.Id;
-                    return Task.FromResult(0);
                 }
 
-                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
+                public void Handle(MessageToBeAuditedByMultiple message)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.SagaId = Data.Id;
-                    return Task.FromResult(0);
                 }
             }
 
@@ -117,11 +116,10 @@
                     mapper.ConfigureMapping<MessageToBeAuditedByMultiple>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
                 }
 
-                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
+                public void Handle(MessageToBeAuditedByMultiple message)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.AlternativeSagaId = Data.Id;
-                    return Task.FromResult(0);
                 }
             }
 
@@ -141,34 +139,31 @@
             public FakeServiceControl()
             {
                 IncludeType<SagaUpdatedMessage>();
-
                 EndpointSetup<DefaultServer>();
             }
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
+                public void Handle(SagaUpdatedMessage message)
                 {
-                    return Task.FromResult(0);
                 }
             }
 
             public class MessageToBeAuditedHandler : IHandleMessages<MessageToBeAudited>, IHandleMessages<MessageToBeAuditedByMultiple>
             {
                 public Context TestContext { get; set; }
+                public IBus Bus { get; set; }
 
-                public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
+                public void Handle(MessageToBeAudited message)
                 {
                     TestContext.MessageAudited = true;
-                    TestContext.Headers = context.MessageHeaders;
-                    return Task.FromResult(0);
+                    TestContext.Headers = Bus.CurrentMessageContext.Headers;
                 }
 
-                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
+                public void Handle(MessageToBeAuditedByMultiple message)
                 {
                     TestContext.MessageAudited = true;
-                    TestContext.Headers = context.MessageHeaders;
-                    return Task.FromResult(0);
+                    TestContext.Headers = Bus.CurrentMessageContext.Headers;
                 }
             }
         }

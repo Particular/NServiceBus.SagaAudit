@@ -1,27 +1,19 @@
 namespace NServiceBus.SagaAudit
 {
-    using ObjectBuilder;
-    using Settings;
+    using Features;
 
-    class ServiceControlBackendInitializer : IWantToRunWhenBusStartsAndStops
+    class ServiceControlBackendInitializer : FeatureStartupTask
     {
         ServiceControlBackend backend;
 
-        public ServiceControlBackendInitializer(ReadOnlySettings settings, IBuilder builder)
+        public ServiceControlBackendInitializer(ServiceControlBackend backend)
         {
-            if (settings.HasExplicitValue("NServiceBus.SagaAudit.Queue"))
-            {
-                backend = builder.Build<ServiceControlBackend>();
-            }
+            this.backend = backend;
         }
-
-        public void Start()
+        
+        protected override void OnStart()
         {
-            backend?.VerifyIfServiceControlQueueExists();
-        }
-
-        public void Stop()
-        {
+            backend.VerifyIfServiceControlQueueExists();
         }
     }
 }

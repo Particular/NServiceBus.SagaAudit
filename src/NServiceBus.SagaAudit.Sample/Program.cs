@@ -11,7 +11,7 @@ public class Program
         busConfiguration.DisableFeature<SecondLevelRetries>();
         busConfiguration.UseSerialization<JsonSerializer>();
         busConfiguration.UsePersistence<InMemoryPersistence>();
-        busConfiguration.AuditSagaStateChanges(Address.Parse("Particular.ServiceControl"));
+        busConfiguration.AuditSagaStateChanges(Address.Parse("Particular.ServiceControl2222"));
 
         using (var bus = Bus.Create(busConfiguration).Start())
         {

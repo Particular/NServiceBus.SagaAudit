@@ -12,6 +12,7 @@
         public SagaAuditFeature()
         {
             DependsOn<Sagas>();
+            RegisterStartupTask<ServiceControlBackendInitializer>();
         }
         
         protected override void Setup(FeatureConfigurationContext context)

@@ -3,31 +3,29 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Features;
+    using NServiceBus.Saga;
     using NUnit.Framework;
 
     public class When_saga_changes_state : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_send_result_to_service_control()
+        public void Should_send_result_to_service_control()
         {
             var contextId = Guid.NewGuid();
-            var context = await Scenario.Define<Context>(c => { c.Id = contextId; })
+            var context = Scenario.Define(new Context(){Id = contextId})
                 .WithEndpoint<FakeServiceControl>()
                 .WithEndpoint<Sender>(b => b.When(session =>
                 {
-                    var sendOptions = new SendOptions();
-                    sendOptions.RouteToThisEndpoint();
-                    return session.Send(new StartSaga
+                    session.SendLocal(new StartSaga
                     {
                         DataId = contextId
-                    }, sendOptions);
+                    });
                 }))
                 .Done(c => c.MessagesReceived.Count == 2)
                 .Run();
@@ -59,7 +57,7 @@
 
             //SagaUpdateMessage.Initiator Asserts
             Assert.True(secondSagaChange.Initiator.IsSagaTimeoutMessage, "Last message initiator is not a timeout");
-            Assert.IsNotNull(firstSagaChange.Initiator,"Initiator has not been set");
+            Assert.IsNotNull(firstSagaChange.Initiator, "Initiator has not been set");
             Assert.IsNotNull(firstSagaChange.Initiator.InitiatingMessageId, "Initiator.InitiatingMessageId has not been set");
             Assert.IsNotEmpty(firstSagaChange.Initiator.InitiatingMessageId, "Initiator.InitiatingMessageId has not been set");
             Assert.IsNotNull(firstSagaChange.Initiator.OriginatingMachine, "Initiator.OriginatingMachine has not been set");
@@ -78,8 +76,8 @@
             Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().Destination, "ResultingMessage.Destination has not been set");
             Assert.IsNotNull(firstSagaChange.ResultingMessages.First().ResultingMessageId, "ResultingMessage.ResultingMessageId has not been not set");
             Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().ResultingMessageId, "ResultingMessage.ResultingMessageId has not been not set");
-            Assert.IsNotNull(firstSagaChange.ResultingMessages.First().Intent,"ResultingMessage.Intent has not been set");
-            Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().Intent,"ResultingMessage.Intent has not been set");
+            Assert.IsNotNull(firstSagaChange.ResultingMessages.First().Intent, "ResultingMessage.Intent has not been set");
+            Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().Intent, "ResultingMessage.Intent has not been set");
         }
 
         class Context : ScenarioContext
@@ -99,7 +97,7 @@
                 EndpointSetup<DefaultServer>(config =>
                 {
                     var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    config.AuditSagaStateChanges(receiverEndpoint);
+                    config.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
                     config.EnableFeature<TimeoutManager>();
                 });
             }
@@ -110,22 +108,21 @@
             {
                 public Context TestContext { get; set; }
 
-                public Task Handle(StartSaga message, IMessageHandlerContext context)
+                public void Handle(StartSaga message)
                 {
                     TestContext.WasStarted = true;
                     Data.DataId = message.DataId;
                     TestContext.SagaId = Data.Id;
                     Console.WriteLine("Handled");
 
-                    return RequestTimeout(context, TimeSpan.FromMilliseconds(1), new TimeHasPassed());
+                    RequestTimeout(TimeSpan.FromMilliseconds(1), new TimeHasPassed());
                 }
 
-                public Task Timeout(TimeHasPassed state, IMessageHandlerContext context)
+                public void Timeout(TimeHasPassed state)
                 {
                     MarkAsComplete();
 
                     TestContext.TimeoutReceived = true;
-                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -157,10 +154,9 @@
             {
                 public Context TestContext { get; set; }
 
-                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
+                public void Handle(SagaUpdatedMessage message)
                 {
                     TestContext.MessagesReceived.Add(message);
-                    return Task.FromResult(0);
                 }
             }
         }

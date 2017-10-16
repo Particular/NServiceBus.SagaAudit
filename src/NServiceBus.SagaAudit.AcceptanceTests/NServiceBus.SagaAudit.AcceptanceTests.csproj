@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+    <DebugType>full</DebugType>
+    <DebugSymbols>True</DebugSymbols>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeInitiator.cs" Link="SagaChangeInitiator.cs" />
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeOutput.cs" Link="SagaChangeOutput.cs" />
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaUpdatedMessage.cs" Link="SagaUpdatedMessage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="5.2.24" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="5.2.24" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
+  </ItemGroup>
+</Project>
