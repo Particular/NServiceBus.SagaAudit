@@ -13,6 +13,7 @@ public class MySaga : Saga<MySagaData>, IAmStartedByMessages<Message1>
 
     public void Handle(Message1 message)
     {
+        Data.SomeId = message.SomeId;
         logger.Info("Hello from MySaga");
         MarkAsComplete();
         Bus.SendLocal(new Message2());

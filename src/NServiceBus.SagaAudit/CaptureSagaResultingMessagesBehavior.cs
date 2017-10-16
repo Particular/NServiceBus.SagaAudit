@@ -9,7 +9,6 @@
 
     class CaptureSagaResultingMessagesBehavior : IBehavior<OutgoingContext>
     {
-
         SagaUpdatedMessage sagaUpdatedMessage;
 
         public void Invoke(OutgoingContext context, Action next)

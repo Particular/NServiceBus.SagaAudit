@@ -1,23 +1,23 @@
-﻿namespace ServiceControl.Plugin.SagaAudit
+﻿namespace NServiceBus.SagaAudit
 {
     using System;
     using System.Collections.Generic;
-    using EndpointPlugin.Messages.SagaState;
-    using NServiceBus;
-    using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
-    using NServiceBus.Saga;
-    using NServiceBus.Sagas;
+    using Pipeline;
+    using Pipeline.Contexts;
+    using Saga;
+    using Sagas;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     class CaptureSagaStateBehavior : IBehavior<IncomingContext>
     {
-        Configure configure;
-        SagaUpdatedMessage sagaAudit;
-        ServiceControlBackend backend;
+        public string EndpointName { get; set; }
+        public Func<object, Dictionary<string, string>> CustomSagaEntitySerialization { get; set; }
 
-        public CaptureSagaStateBehavior(Configure configure, ServiceControlBackend backend)
+        ServiceControlBackend backend;
+        static SagaEntitySerializationStrategy sagaEntitySerializationStrategy = new SagaEntitySerializationStrategy();
+
+        public CaptureSagaStateBehavior(ServiceControlBackend backend)
         {
-            this.configure = configure;
             this.backend = backend;
         }
 
@@ -31,10 +31,10 @@
                 return;
             }
 
-            sagaAudit = new SagaUpdatedMessage
-                {
-                    StartTime = DateTime.UtcNow
-                };
+            var sagaAudit = new SagaUpdatedMessage
+            {
+                StartTime = DateTime.UtcNow
+            };
             context.Set(sagaAudit);
             next();
 
@@ -44,10 +44,10 @@
             }
 
             sagaAudit.FinishTime = DateTime.UtcNow;
-            AuditSaga(saga, context);
+            AuditSaga(sagaAudit, saga, context);
         }
 
-        void AuditSaga(Saga saga, IncomingContext context)
+        void AuditSaga(SagaUpdatedMessage sagaAudit, Saga saga, IncomingContext context)
         {
             string messageId;
 
@@ -57,19 +57,29 @@
             }
 
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
-            var sagaStateString = Serializer.Serialize(saga.Entity);
+
+            string sagaStateString;
+            if (CustomSagaEntitySerialization != null)
+            {
+                sagaStateString = SimpleJson.SimpleJson.SerializeObject(CustomSagaEntitySerialization(saga.Entity));
+            }
+            else
+            {
+                sagaStateString = SimpleJson.SimpleJson.SerializeObject(saga.Entity, sagaEntitySerializationStrategy);
+            }
+
             var messageType = context.IncomingLogicalMessage.MessageType.FullName;
             var headers = context.IncomingLogicalMessage.Headers;
 
             sagaAudit.Initiator = BuildSagaChangeInitatorMessage(headers, messageId, messageType);
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.IsCompleted = saga.Completed;
-            sagaAudit.Endpoint = configure.Settings.EndpointName();
+            sagaAudit.Endpoint = EndpointName;
             sagaAudit.SagaId = saga.Entity.Id;
             sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
 
-            AssignSagaStateChangeCausedByMessage(context);
+            AssignSagaStateChangeCausedByMessage(sagaAudit, context);
             backend.Send(sagaAudit);
         }
 
@@ -105,7 +115,7 @@
                 };
         }
 
-        void AssignSagaStateChangeCausedByMessage(IncomingContext context)
+        void AssignSagaStateChangeCausedByMessage(SagaUpdatedMessage sagaAudit, IncomingContext context)
         {
             string sagaStateChange;
 

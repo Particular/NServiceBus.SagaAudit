@@ -2,16 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus.SagaAudit;
     using NUnit.Framework;
-    using ServiceControl.Plugin.SagaAudit;
 
     public class When_a_message_with_proper_headers_arrive
     {
         [Test]
         public void Saga_state_change_message_can_be_created()
         {
-            var behavior = new CaptureSagaStateBehavior(null, null);
-
+            var behavior = new CaptureSagaStateBehavior(null)
+            {
+                EndpointName = "Endpoint"
+            };
 
             var headers = new Dictionary<string, string>
             {
@@ -21,14 +23,14 @@
                 {"NServiceBus.Version", "5.1.2"},
                 {"NServiceBus.TimeSent", "2015-01-27 18:13:08:723699 Z"},
                 {"NServiceBus.ContentType", "application/json"},
-                {"NServiceBus.EnclosedMessageTypes", "Message1, ServiceControl.Plugin.SagaAudit.Sample, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"},
+                {"NServiceBus.EnclosedMessageTypes", "Message1, ServiceControl.Plugin.SagaAuditFeature.Sample, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"},
                 {"CorrId",@"cf79765e-0123-45bf-a41b-a42d00a867c9\0"},
                 {"NServiceBus.ConversationId", "be34099f-1e50-4ec6-b935-a42d00a8681d"},
                 {"WinIdName",@"MACHINE\user1"},
                 {"NServiceBus.OriginatingMachine", "MACHINE"},
-                {"NServiceBus.OriginatingEndpoint","ServiceControl.Plugin.SagaAudit.Sample"},
+                {"NServiceBus.OriginatingEndpoint","ServiceControl.Plugin.SagaAuditFeature.Sample"},
                 {"$.diagnostics.originating.hostid","8c436a19575e17e429c033fe4ab595fd"},
-                {"NServiceBus.ReplyToAddress","ServiceControl.Plugin.SagaAudit.Sample@MACHINE"},
+                {"NServiceBus.ReplyToAddress","ServiceControl.Plugin.SagaAuditFeature.Sample@MACHINE"},
                 {"$.diagnostics.hostid","8c436a19575e17e429c033fe4ab595fd"},
                 {"$.diagnostics.hostdisplayname","MACHINE"},
                 {"$.diagnostics.license.expired","false"},
