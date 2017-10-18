@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Utils
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
     using System.Security.Cryptography;

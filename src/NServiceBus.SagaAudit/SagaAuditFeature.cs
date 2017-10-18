@@ -5,7 +5,6 @@
     using NServiceBus;
     using Pipeline;
     using SagaAudit;
-    using ServiceControl.Plugin.SagaAudit;
 
     class SagaAuditFeature : Feature
     {

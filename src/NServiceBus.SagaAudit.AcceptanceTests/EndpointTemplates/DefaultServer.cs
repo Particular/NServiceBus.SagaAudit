@@ -1,16 +1,16 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests.EndpointTemplates
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using AcceptanceTesting;
     using AcceptanceTesting.Support;
+    using Config.ConfigurationSource;
+    using Configuration.AdvanceExtensibility;
     using Hosting.Helpers;
     using Logging;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Configuration.AdvanceExtensibility;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -28,8 +28,6 @@
 
         public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            var settings = runDescriptor.Settings;
-
             LogManager.UseFactory(new ContextAppender(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName));
 
             var types = GetTypesScopedByTestClass(endpointConfiguration);

@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.AcceptanceTests.ScenarioDescriptors
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests.ScenarioDescriptors
 {
     using System;
     using System.Collections.Generic;

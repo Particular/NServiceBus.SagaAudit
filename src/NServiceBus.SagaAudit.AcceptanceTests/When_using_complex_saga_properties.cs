@@ -1,16 +1,15 @@
-﻿namespace ServiceControl.Plugin.Nsb6.SagaAudit.AcceptanceTests
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EndpointPlugin.Messages.SagaState;
+    using AcceptanceTesting;
+    using EndpointTemplates;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Saga;
-    using NServiceBus.Support;
     using NUnit.Framework;
+    using Saga;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using Support;
 
     public class When_using_complex_saga_properties : NServiceBusAcceptanceTest
     {
@@ -31,7 +30,7 @@
                 .Run();
 
             var changeMessage = context.MessagesReceived.First(msg => msg?.Initiator?.MessageType == typeof(StartSaga).FullName);
-            Assert.AreEqual($"{{\"DataId\":\"{contextId}\",\"Id\":\"{context.SagaId}\",\"Originator\":\"UsingComplexSagaProperties.Sender@{RuntimeEnvironment.MachineName}\",\"OriginalMessageId\":\"{context.OriginalMessageId}\",\"$type\":\"ServiceControl.Plugin.Nsb6.SagaAudit.AcceptanceTests.When_using_complex_saga_properties+Sender+MySaga+MySagaData, NServiceBus.SagaAudit.AcceptanceTests\"}}", changeMessage.SagaState);
+            Assert.AreEqual($"{{\"DataId\":\"{contextId}\",\"Id\":\"{context.SagaId}\",\"Originator\":\"UsingComplexSagaProperties.Sender@{RuntimeEnvironment.MachineName}\",\"OriginalMessageId\":\"{context.OriginalMessageId}\",\"$type\":\"NServiceBus.SagaAudit.AcceptanceTests.When_using_complex_saga_properties+Sender+MySaga+MySagaData, NServiceBus.SagaAudit.AcceptanceTests\"}}", changeMessage.SagaState);
         }
 
         class Context : ScenarioContext
@@ -48,7 +47,7 @@
             {
                 EndpointSetup<DefaultServer>(config =>
                 {
-                    var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+                    var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
                 });
             }

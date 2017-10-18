@@ -1,12 +1,11 @@
-﻿namespace ServiceControl.Plugin.Nsb6.SagaAudit.AcceptanceTests
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
+    using AcceptanceTesting;
+    using EndpointTemplates;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using Saga;
 
     public class When_queue_does_not_exist : NServiceBusAcceptanceTest
     {

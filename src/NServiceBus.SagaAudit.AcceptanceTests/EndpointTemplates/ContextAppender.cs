@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests.EndpointTemplates
 {
     using System;
     using System.Diagnostics;

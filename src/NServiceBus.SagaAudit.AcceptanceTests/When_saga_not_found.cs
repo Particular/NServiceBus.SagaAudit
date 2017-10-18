@@ -1,13 +1,12 @@
-﻿namespace ServiceControl.Plugin.Nsb6.SagaAudit.AcceptanceTests
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
-    using EndpointPlugin.Messages.SagaState;
+    using AcceptanceTesting;
+    using EndpointTemplates;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using Saga;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_saga_not_found : NServiceBusAcceptanceTest
     {
@@ -62,7 +61,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+                    var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     c.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
                 });
             }

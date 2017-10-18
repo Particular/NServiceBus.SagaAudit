@@ -1,11 +1,10 @@
-﻿namespace ServiceControl.Plugin.SagaAudit
+﻿namespace NServiceBus.SagaAudit
 {
     using System;
-    using EndpointPlugin.Messages.SagaState;
-    using NServiceBus;
-    using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
-    using NServiceBus.Unicast;
+    using Pipeline;
+    using Pipeline.Contexts;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using Unicast;
 
     class CaptureSagaResultingMessagesBehavior : IBehavior<OutgoingContext>
     {

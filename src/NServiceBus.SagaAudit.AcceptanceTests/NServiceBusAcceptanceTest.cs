@@ -1,4 +1,4 @@
-namespace NServiceBus.AcceptanceTests
+namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System.Linq;
     using AcceptanceTesting.Customization;

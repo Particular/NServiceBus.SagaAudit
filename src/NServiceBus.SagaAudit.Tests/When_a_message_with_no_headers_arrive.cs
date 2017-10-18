@@ -1,9 +1,9 @@
-﻿namespace ServiceControl.Plugin.Nsb5.SagaAudit.Tests
+﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus.SagaAudit;
     using NUnit.Framework;
+    using SagaAudit;
 
     public class When_a_message_with_no_headers_arrive
     {

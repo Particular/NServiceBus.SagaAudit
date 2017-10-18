@@ -1,16 +1,15 @@
-﻿namespace ServiceControl.Plugin.Nsb6.SagaAudit.AcceptanceTests
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EndpointPlugin.Messages.SagaState;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using Features;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Features;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using Saga;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_providing_custom_saga_entity_serializer : NServiceBusAcceptanceTest
     {
@@ -45,7 +44,7 @@
             {
                 EndpointSetup<DefaultServer>(config =>
                 {
-                    var receiverEndpoint = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+                    var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.AuditSagaStateChanges(Address.Parse(receiverEndpoint), e =>
                     {
                         var typedEntity = (MySaga.MySagaData)e;
