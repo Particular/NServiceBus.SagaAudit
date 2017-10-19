@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="5.0.0" />
+    <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
     <Reference Include="System.Configuration" />
   </ItemGroup>
 </Project>
