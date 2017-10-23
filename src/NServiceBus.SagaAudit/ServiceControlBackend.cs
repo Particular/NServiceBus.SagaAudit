@@ -15,7 +15,7 @@
         public Address Destination { get; set; }
         public Address LocalAddress { get; set; }
 
-        public  ServiceControlBackend(ISendMessages messageSender)
+        public ServiceControlBackend(ISendMessages messageSender)
         {
             this.messageSender = messageSender;
         }
