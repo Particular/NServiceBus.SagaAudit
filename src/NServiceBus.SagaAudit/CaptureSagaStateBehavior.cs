@@ -113,7 +113,7 @@
         {
             if (!context.PhysicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out var sagaStateChange))
             {
-                sagaStateChange = String.Empty;
+                sagaStateChange = string.Empty;
             }
 
             var statechange = "Updated";
@@ -126,7 +126,7 @@
                 statechange = "Completed";
             }
 
-            if (!String.IsNullOrEmpty(sagaStateChange))
+            if (!string.IsNullOrEmpty(sagaStateChange))
             {
                 sagaStateChange += ";";
             }
