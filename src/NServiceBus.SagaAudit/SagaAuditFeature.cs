@@ -11,6 +11,7 @@
         public SagaAuditFeature()
         {
             DependsOn<Sagas>();
+            Defaults(s => s.SetDefault(SettingsKeys.CustomSerialization, null));
             RegisterStartupTask<ServiceControlBackendInitializer>();
         }
         
