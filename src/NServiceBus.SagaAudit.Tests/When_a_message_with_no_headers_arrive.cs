@@ -10,15 +10,11 @@
         [Test]
         public void Saga_state_change_message_can_be_created()
         {
-            var behavior = new CaptureSagaStateBehavior(null)
-            {
-                EndpointName = "Endpoint"
-            };
             var headers = new Dictionary<string, string>();
             var messageId = Guid.NewGuid().ToString();
             var messageType = "SomeMessage";
 
-            var message = behavior.BuildSagaChangeInitatorMessage(headers, messageId, messageType);
+            var message = CaptureSagaStateBehavior.BuildSagaChangeInitatorMessage(headers, messageId, messageType);
 
             Assert.IsNotNull(message);
             Assert.IsNull(message.OriginatingEndpoint);
