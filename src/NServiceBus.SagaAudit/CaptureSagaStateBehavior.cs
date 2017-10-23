@@ -130,7 +130,7 @@
             {
                 sagaStateChange += ";";
             }
-            sagaStateChange += String.Format("{0}:{1}", sagaAudit.SagaId, statechange);
+            sagaStateChange += $"{sagaAudit.SagaId}:{statechange}";
 
             context.PhysicalMessage.Headers["ServiceControl.SagaStateChange"] = sagaStateChange;
         }
