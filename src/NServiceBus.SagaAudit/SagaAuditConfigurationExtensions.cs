@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using Configuration.AdvanceExtensibility;
     using Features;
+    using SagaAudit;
 
     /// <summary>
     /// Plugin extension methods.
@@ -19,10 +20,10 @@
         public static void AuditSagaStateChanges(this BusConfiguration config, Address serviceControlQueue, Func<object, Dictionary<string, string>> customSagaEntitySerialization = null)
         {
             config.EnableFeature<SagaAuditFeature>();
-            config.GetSettings().Set("NServiceBus.SagaAudit.Queue", serviceControlQueue);
+            config.GetSettings().Set(SettingsKeys.SagaAuditQueue, serviceControlQueue);
             if (customSagaEntitySerialization != null)
             {
-                config.GetSettings().Set("NServiceBus.SagaAudit.Serialization", customSagaEntitySerialization);
+                config.GetSettings().Set(SettingsKeys.CustomSerialization, customSagaEntitySerialization);
             }
         }
     }

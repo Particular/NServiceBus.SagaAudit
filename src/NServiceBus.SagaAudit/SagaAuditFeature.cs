@@ -16,10 +16,10 @@
         
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Settings.TryGet("NServiceBus.SagaAudit.Serialization", out Func<object, Dictionary<string, string>> customSagaEntitySerialization);
+            context.Settings.TryGet(SettingsKeys.CustomSerialization, out Func<object, Dictionary<string, string>> customSagaEntitySerialization);
             var endpointName = context.Settings.EndpointName();
 
-            var destination = context.Settings.Get<Address>("NServiceBus.SagaAudit.Queue");
+            var destination = context.Settings.Get<Address>(SettingsKeys.SagaAuditQueue);
             context.Container.ConfigureComponent<ServiceControlBackend>(DependencyLifecycle.SingleInstance)
                 .ConfigureProperty(x => x.Destination, destination)
                 .ConfigureProperty(x => x.LocalAddress, context.Settings.LocalAddress());
