@@ -85,7 +85,6 @@
 
         public SagaChangeInitiator BuildSagaChangeInitatorMessage(Dictionary<string, string> headers, string messageId, string messageType )
         {
-
             string originatingMachine;
             headers.TryGetValue(Headers.OriginatingMachine, out originatingMachine);
 
@@ -142,6 +141,5 @@
 
             context.PhysicalMessage.Headers["ServiceControl.SagaStateChange"] = sagaStateChange;
         }
-
     }
 }
