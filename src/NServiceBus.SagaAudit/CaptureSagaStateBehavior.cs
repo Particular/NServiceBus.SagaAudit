@@ -51,9 +51,7 @@
 
         void AuditSaga(SagaUpdatedMessage sagaAudit, Saga saga, IncomingContext context)
         {
-            string messageId;
-
-            if (!context.IncomingLogicalMessage.Headers.TryGetValue(Headers.MessageId, out messageId))
+            if (!context.IncomingLogicalMessage.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
                 return;
             }
@@ -87,22 +85,17 @@
 
         public static SagaChangeInitiator BuildSagaChangeInitatorMessage(Dictionary<string, string> headers, string messageId, string messageType )
         {
-            string originatingMachine;
-            headers.TryGetValue(Headers.OriginatingMachine, out originatingMachine);
+            headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine);
 
-            string originatingEndpoint;
-            headers.TryGetValue(Headers.OriginatingEndpoint, out originatingEndpoint);
+            headers.TryGetValue(Headers.OriginatingEndpoint, out var originatingEndpoint);
 
-            string timeSent;
-            var timeSentConveredToUtc = headers.TryGetValue(Headers.TimeSent, out timeSent) ?
+            var timeSentConveredToUtc = headers.TryGetValue(Headers.TimeSent, out var timeSent) ?
                 DateTimeExtensions.ToUtcDateTime(timeSent) :
                 DateTime.MinValue;
 
-            string messageIntent;
-            var intent = headers.TryGetValue(Headers.MessageIntent, out messageIntent) ? messageIntent : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
+            var intent = headers.TryGetValue(Headers.MessageIntent, out var messageIntent) ? messageIntent : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
 
-            string isTimeout;
-            var isTimeoutMessage = headers.TryGetValue(Headers.IsSagaTimeoutMessage, out isTimeout) && isTimeout.ToLowerInvariant() == "true";
+            var isTimeoutMessage = headers.TryGetValue(Headers.IsSagaTimeoutMessage, out var isTimeout) && isTimeout.ToLowerInvariant() == "true";
 
             return new SagaChangeInitiator
                 {
@@ -118,9 +111,7 @@
 
         static void AssignSagaStateChangeCausedByMessage(SagaUpdatedMessage sagaAudit, IncomingContext context)
         {
-            string sagaStateChange;
-
-            if (!context.PhysicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out sagaStateChange))
+            if (!context.PhysicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out var sagaStateChange))
             {
                 sagaStateChange = String.Empty;
             }
