@@ -24,9 +24,7 @@
                 .ConfigureProperty(x => x.Destination, destination)
                 .ConfigureProperty(x => x.LocalAddress, context.Settings.LocalAddress());
 
-            context.Container
-                .ConfigureProperty<CaptureSagaStateBehavior>(x => x.EndpointName, endpointName)
-                .ConfigureProperty<CaptureSagaStateBehavior>(x => x.CustomSagaEntitySerialization, customSagaEntitySerialization);
+            context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), endpointName, customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
 
             context.Pipeline.Register<CaptureSagaStateRegistration>();
             context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();
