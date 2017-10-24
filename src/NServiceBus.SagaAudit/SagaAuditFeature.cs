@@ -5,6 +5,7 @@
     using NServiceBus;
     using Pipeline;
     using SagaAudit;
+    using Transports;
 
     class SagaAuditFeature : Feature
     {
@@ -14,16 +15,15 @@
             Defaults(s => s.SetDefault(SettingsKeys.CustomSerialization, null));
             RegisterStartupTask<ServiceControlBackendInitializer>();
         }
-        
+
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Settings.TryGet(SettingsKeys.CustomSerialization, out Func<object, Dictionary<string, string>> customSagaEntitySerialization);
             var endpointName = context.Settings.EndpointName();
 
             var destination = context.Settings.Get<Address>(SettingsKeys.SagaAuditQueue);
-            context.Container.ConfigureComponent<ServiceControlBackend>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(x => x.Destination, destination)
-                .ConfigureProperty(x => x.LocalAddress, context.Settings.LocalAddress());
+            var localAddress = context.Settings.LocalAddress();
+            context.Container.ConfigureComponent(b => new ServiceControlBackend(b.Build<ISendMessages>(), destination, localAddress), DependencyLifecycle.SingleInstance);
 
             context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), endpointName, customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
 

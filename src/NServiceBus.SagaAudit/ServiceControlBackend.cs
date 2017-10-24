@@ -12,12 +12,11 @@
 
     class ServiceControlBackend
     {
-        public Address Destination { get; set; }
-        public Address LocalAddress { get; set; }
-
-        public ServiceControlBackend(ISendMessages messageSender)
+        public ServiceControlBackend(ISendMessages messageSender, Address destination, Address localAddress)
         {
             this.messageSender = messageSender;
+            this.destination = destination;
+            this.localAddress = localAddress;
         }
 
         public void Send(SagaUpdatedMessage messageToSend, TimeSpan timeToBeReceived)
@@ -33,7 +32,7 @@
 
             try
             {
-                messageSender.Send(message, new SendOptions(Destination) { ReplyToAddress = LocalAddress });
+                messageSender.Send(message, new SendOptions(destination) { ReplyToAddress = localAddress });
             }
             catch (Exception ex)
             {
@@ -53,7 +52,7 @@
 
         public void VerifyIfServiceControlQueueExists()
         {
-            var sendOptions = new SendOptions(Destination) { ReplyToAddress = LocalAddress };
+            var sendOptions = new SendOptions(destination) { ReplyToAddress = localAddress };
             try
             {
                 // In order to verify if the queue exists, we are sending a control message to SC.
@@ -71,6 +70,8 @@ Please ensure that the Particular ServiceControl queue specified is correct.";
             }
         }
 
+        Address destination;
+        Address localAddress;
         static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
         ISendMessages messageSender;
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
