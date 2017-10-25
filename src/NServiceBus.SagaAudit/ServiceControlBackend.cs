@@ -1,38 +1,45 @@
 ﻿namespace NServiceBus.SagaAudit
 {
     using System;
+    using System.Collections.Generic;
     using System.Text;
-    using NServiceBus;
+    using System.Threading.Tasks;
+    using DeliveryConstraints;
+    using Extensibility;
     using Logging;
-    using Transports;
-    using Unicast;
-    using Unicast.Transport;
+    using NServiceBus;
+    using Performance.TimeToBeReceived;
+    using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using SimpleJson;
+    using Transport;
+    using Unicast.Transport;
 
     class ServiceControlBackend
     {
-        public ServiceControlBackend(ISendMessages messageSender, Address destination, Address localAddress)
+        public ServiceControlBackend(string destinationQueue, string localAddress)
         {
-            this.messageSender = messageSender;
-            this.destination = destination;
+            this.destinationQueue = destinationQueue;
             this.localAddress = localAddress;
         }
 
-        public void Send(SagaUpdatedMessage messageToSend, TimeSpan timeToBeReceived)
+        async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction)
         {
-            var message = new TransportMessage
-            {
-                TimeToBeReceived = timeToBeReceived,
-                Body = Serialize(messageToSend)
-            };
+            var body = Serialize(messageToSend);
 
-            message.Headers[Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName;
-            message.Headers[Headers.ContentType] = ContentTypes.Json;
+            var headers = new Dictionary<string, string>
+            {
+                [Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName,
+                [Headers.ContentType] = ContentTypes.Json,
+                [Headers.ReplyToAddress] = localAddress,
+                [Headers.MessageIntent] = sendIntent
+            };
 
             try
             {
-                messageSender.Send(message, new SendOptions(destination) { ReplyToAddress = localAddress });
+                var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), headers, body);
+                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), deliveryConstraints: new List<DeliveryConstraint> { new DiscardIfNotReceivedBefore(timeToBeReceived) });
+                await messageSender.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -45,35 +52,41 @@
             return Encoding.UTF8.GetBytes(SimpleJson.SerializeObject(messageToSend, serializerStrategy));
         }
 
-        public void Send(SagaUpdatedMessage messageToSend)
+        public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction)
         {
-            Send(messageToSend, TimeSpan.MaxValue);
+            return Send(messageToSend, TimeSpan.MaxValue, transportTransaction);
         }
 
-        public void VerifyIfServiceControlQueueExists()
+        public async Task Start(IDispatchMessages dispatcher)
         {
-            var sendOptions = new SendOptions(destination) { ReplyToAddress = localAddress };
+            messageSender = dispatcher;
             try
             {
                 // In order to verify if the queue exists, we are sending a control message to SC.
                 // If we are unable to send a message because the queue doesn't exist, then we can fail fast.
                 // We currently don't have a way to check if Queue exists in a transport agnostic way,
                 // hence the send.
-                messageSender.Send(ControlMessage.Create(), sendOptions);
+                var outgoingMessage = ControlMessageFactory.Create(MessageIntentEnum.Send);
+                outgoingMessage.Headers[Headers.ReplyToAddress] = localAddress;
+                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue));
+                await messageSender.Dispatch(new TransportOperations(operation), new TransportTransaction(), new ContextBag()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                const string errMsg = @"You have ServiceControl plugins installed in your endpoint, however, this endpoint is unable to contact the ServiceControl Backend to report endpoint information.
-Please ensure that the Particular ServiceControl queue specified is correct.";
+                const string errMsg = @"You have enabled saga state change auditing in your endpoint, however, this endpoint is unable to contact the ServiceControl to report endpoint information.
+Please ensure that the specified queue is correct.";
 
                 throw new Exception(errMsg, ex);
             }
         }
 
-        Address destination;
-        Address localAddress;
+        IDispatchMessages messageSender;
+
+        string destinationQueue;
+        string localAddress;
+
         static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
-        ISendMessages messageSender;
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
+        readonly string sendIntent = MessageIntentEnum.Send.ToString();
     }
 }
