@@ -4,7 +4,6 @@
     <TargetFramework>net45</TargetFramework>
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
