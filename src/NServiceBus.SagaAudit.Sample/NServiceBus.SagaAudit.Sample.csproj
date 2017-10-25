@@ -2,8 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>

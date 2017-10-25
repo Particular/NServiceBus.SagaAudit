@@ -2,8 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeInitiator.cs" Link="SagaChangeInitiator.cs" />
