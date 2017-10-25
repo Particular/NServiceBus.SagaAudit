@@ -23,7 +23,10 @@
 
             context.Container.ConfigureComponent(b => new ServiceControlBackend(b.Build<ISendMessages>(), serviceControlQueue, context.Settings.LocalAddress()), DependencyLifecycle.SingleInstance);
 
-            context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), context.Settings.EndpointName(), customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
+            var endpointName = context.Settings.EndpointName();
+            context.Container
+                .ConfigureProperty<CaptureSagaStateBehavior>(b => b.EndpointName, endpointName)
+                .ConfigureProperty<CaptureSagaStateBehavior>(b => b.CustomSagaEntitySerialization, customSagaEntitySerialization);
 
             context.Pipeline.Register<CaptureSagaStateRegistration>();
             context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();

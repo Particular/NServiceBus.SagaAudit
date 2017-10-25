@@ -10,17 +10,15 @@
 
     class CaptureSagaStateBehavior : IBehavior<IncomingContext>
     {
-        string endpointName;
-        Func<object, Dictionary<string, string>> customSagaEntitySerialization;
+        public string EndpointName { get; set; }
+        public Func<object, Dictionary<string, string>> CustomSagaEntitySerialization { get; set; }
 
         ServiceControlBackend backend;
         static SagaEntitySerializationStrategy sagaEntitySerializationStrategy = new SagaEntitySerializationStrategy();
 
-        public CaptureSagaStateBehavior(ServiceControlBackend backend, string endpointName, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
+        public CaptureSagaStateBehavior(ServiceControlBackend backend)
         {
             this.backend = backend;
-            this.endpointName = endpointName;
-            this.customSagaEntitySerialization = customSagaEntitySerialization;
         }
 
         public void Invoke(IncomingContext context, Action next)
@@ -59,9 +57,9 @@
             var activeSagaInstance = context.Get<ActiveSagaInstance>();
 
             string sagaStateString;
-            if (customSagaEntitySerialization != null)
+            if (CustomSagaEntitySerialization != null)
             {
-                sagaStateString = SimpleJson.SimpleJson.SerializeObject(customSagaEntitySerialization(saga.Entity));
+                sagaStateString = SimpleJson.SimpleJson.SerializeObject(CustomSagaEntitySerialization(saga.Entity));
             }
             else
             {
@@ -74,7 +72,7 @@
             sagaAudit.Initiator = BuildSagaChangeInitatorMessage(headers, messageId, messageType);
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.IsCompleted = saga.Completed;
-            sagaAudit.Endpoint = endpointName;
+            sagaAudit.Endpoint = EndpointName;
             sagaAudit.SagaId = saga.Entity.Id;
             sagaAudit.SagaType = saga.GetType().FullName;
             sagaAudit.SagaState = sagaStateString;
