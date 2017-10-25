@@ -44,8 +44,7 @@
             Assert.IsNotEmpty(message.OriginatingEndpoint);
             Assert.IsNotEmpty(message.OriginatingMachine);
             Assert.IsTrue(message.IsSagaTimeoutMessage);
-            // When SC can handle null TimeSent, then should be asserting to null, instead of checking for minValue
-            Assert.AreNotEqual(DateTime.MinValue, message.TimeSent);
+            Assert.AreNotEqual(DateTime.MinValue, message.TimeSent); // When SC can handle null TimeSent, then should be asserting to null, instead of checking for minValue
         }
     }
 }
