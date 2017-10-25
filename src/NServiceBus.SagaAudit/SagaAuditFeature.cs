@@ -7,7 +7,6 @@
     using Pipeline;
     using SagaAudit;
     using Transport;
-    using Transports;
 
     class SagaAuditFeature : Feature
     {
@@ -24,9 +23,8 @@
 
             var backend = new ServiceControlBackend(serviceControlQueue, context.Settings.LocalAddress());
 
-            context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), context.Settings.EndpointName(), customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), backend, customSagaEntitySerialization));
 
-            context.Pipeline.Register<CaptureSagaStateRegistration>();
             context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();
             context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.Build<IDispatchMessages>()));
         }
@@ -53,14 +51,6 @@
             }
         }
 
-        class CaptureSagaStateRegistration : RegisterStep
-        {
-            public CaptureSagaStateRegistration()
-                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes")
-            {
-                InsertBefore(WellKnownStep.InvokeSaga);
-            }
-        }
 
         class CaptureSagaResultingMessageRegistration : RegisterStep
         {

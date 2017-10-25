@@ -36,7 +36,7 @@
             var messageId = Guid.NewGuid().ToString();
             const string messageType = "Message1";
 
-            var message = CaptureSagaStateBehavior.BuildSagaChangeInitatorMessage(headers, messageId, messageType);
+            var message = CaptureSagaStateBehavior.BuildSagaChangeInitiatorMessage(headers, messageId, messageType);
 
             Assert.IsNotNull(message);
             Assert.IsNotNull(message.OriginatingEndpoint);
