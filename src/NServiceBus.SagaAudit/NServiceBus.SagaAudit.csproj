@@ -9,7 +9,7 @@
     <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="6.0.0" />
+    <PackageReference Include="NServiceBus" Version="[7.0.0-*,8.0.0)" />
     <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
     <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
   </ItemGroup>

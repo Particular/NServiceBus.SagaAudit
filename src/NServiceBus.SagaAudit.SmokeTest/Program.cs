@@ -29,14 +29,14 @@
 
             var busConfiguration = new EndpointConfiguration("NServiceBus.SagaAudit.SmokeTest");
             busConfiguration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            busConfiguration.UseSerialization<JsonSerializer>();
+            busConfiguration.UseSerialization<NewtonsoftSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<InMemoryPersistence>();
             busConfiguration.SendFailedMessagesTo("error");
             busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 
-            var routing = busConfiguration.UseTransport<MsmqTransport>().Routing();
+            var routing = busConfiguration.UseTransport<LearningTransport>().Routing();
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 
             var endpoint = await Endpoint.Start(busConfiguration);

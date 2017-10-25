@@ -4,9 +4,10 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="[6.*,7.0.0)" />
     <PackageReference Include="Autofac" Version="*" />
-    <PackageReference Include="NServiceBus.Autofac" Version="[6.*,7.0.0)" />
+    <PackageReference Include="NServiceBus" Version="7.0.0-*" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.0.0-*" />
+    <PackageReference Include="NServiceBus.Autofac" Version="7.0.0-*" />
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
   </ItemGroup>
 </Project>

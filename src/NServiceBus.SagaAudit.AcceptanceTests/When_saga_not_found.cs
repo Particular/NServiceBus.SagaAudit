@@ -35,7 +35,7 @@
 
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.UseSerialization<JsonSerializer>();
+                    c.UseSerialization<NewtonsoftSerializer>();
                 });
             }
 
@@ -108,7 +108,7 @@
                 }
             }
         }
-        
+
         class Context : ScenarioContext
         {
             public bool Done { get; set; }
