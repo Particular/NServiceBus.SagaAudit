@@ -3,28 +3,31 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using Features;
     using NServiceBus;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_providing_custom_saga_entity_serializer : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_use_it()
+        public async Task Should_use_it()
         {
             var contextId = Guid.NewGuid();
-            var context = Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>(c => { c.Id = contextId; })
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<Sender>(b => b.When(bus =>
+                .WithEndpoint<Sender>(b => b.When(session =>
                 {
-                    bus.SendLocal(new StartSaga
+                    var sendOptions = new SendOptions();
+                    sendOptions.RouteToThisEndpoint();
+                    return session.Send(new StartSaga
                     {
                         DataId = contextId
-                    });
+                    }, sendOptions);
                 }))
                 .Done(c => c.MessagesReceived.Count == 1)
                 .Run();
@@ -35,7 +38,10 @@
 
         class Context : ScenarioContext
         {
+            public Guid Id { get; set; }
+
             internal List<SagaUpdatedMessage> MessagesReceived { get; } = new List<SagaUpdatedMessage>();
+            public Guid SagaId { get; set; }
         }
 
         class Sender : EndpointConfigurationBuilder
@@ -45,7 +51,7 @@
                 EndpointSetup<DefaultServer>(config =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    config.AuditSagaStateChanges(Address.Parse(receiverEndpoint), e =>
+                    config.AuditSagaStateChanges(receiverEndpoint, e =>
                     {
                         var typedEntity = (MySaga.MySagaData)e;
 
@@ -63,9 +69,10 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(StartSaga message)
+                public Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
                     Data.DataId = message.DataId;
+                    return Task.FromResult(0);
                 }
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
@@ -92,9 +99,10 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(SagaUpdatedMessage message)
+                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     TestContext.MessagesReceived.Add(message);
+                    return Task.FromResult(0);
                 }
             }
         }
