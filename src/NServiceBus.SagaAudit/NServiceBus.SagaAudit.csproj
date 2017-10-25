@@ -7,7 +7,7 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Description>Saga auditing plugin for the Particular Platform</Description>
+    <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="5.0.0" />
