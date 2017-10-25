@@ -18,14 +18,12 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Settings.TryGet(SettingsKeys.CustomSerialization, out Func<object, Dictionary<string, string>> customSagaEntitySerialization);
-            var endpointName = context.Settings.EndpointName();
+            var serviceControlQueue = context.Settings.Get<Address>(SettingsKeys.SagaAuditQueue);
+            var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>>(SettingsKeys.CustomSerialization);
 
-            var destination = context.Settings.Get<Address>(SettingsKeys.SagaAuditQueue);
-            var localAddress = context.Settings.LocalAddress();
-            context.Container.ConfigureComponent(b => new ServiceControlBackend(b.Build<ISendMessages>(), destination, localAddress), DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent(b => new ServiceControlBackend(b.Build<ISendMessages>(), serviceControlQueue, context.Settings.LocalAddress()), DependencyLifecycle.SingleInstance);
 
-            context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), endpointName, customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent(b => new CaptureSagaStateBehavior(b.Build<ServiceControlBackend>(), context.Settings.EndpointName(), customSagaEntitySerialization), DependencyLifecycle.SingleInstance);
 
             context.Pipeline.Register<CaptureSagaStateRegistration>();
             context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();
