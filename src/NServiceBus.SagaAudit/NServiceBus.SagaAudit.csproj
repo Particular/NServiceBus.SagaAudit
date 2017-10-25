@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
     <OutputPath>..\..\binaries\</OutputPath>
@@ -9,9 +9,8 @@
     <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="5.0.0" />
+    <PackageReference Include="NServiceBus" Version="6.0.0" />
     <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
     <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
-    <Reference Include="System.Configuration" />
   </ItemGroup>
 </Project>
