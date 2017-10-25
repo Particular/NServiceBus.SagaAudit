@@ -1,66 +1,70 @@
 ﻿namespace NServiceBus.SagaAudit
 {
     using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using DelayedDelivery;
+    using DeliveryConstraints;
     using Pipeline;
-    using Pipeline.Contexts;
+    using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using Unicast;
 
-    class CaptureSagaResultingMessagesBehavior : IBehavior<OutgoingContext>
+    class CaptureSagaResultingMessagesBehavior : Behavior<IOutgoingLogicalMessageContext>
     {
-        SagaUpdatedMessage sagaUpdatedMessage;
-
-        public void Invoke(OutgoingContext context, Action next)
+        public override Task Invoke(IOutgoingLogicalMessageContext context, Func<Task> next)
         {
             AppendMessageToState(context);
-            next();
+            return next();
         }
 
-        void AppendMessageToState(OutgoingContext context)
+        void AppendMessageToState(IOutgoingLogicalMessageContext context)
         {
-            if (!context.TryGet(out sagaUpdatedMessage))
-            {
-                return;
-            }
-            var logicalMessage = context.OutgoingLogicalMessage;
+            var logicalMessage = context.Message;
             if (logicalMessage == null)
             {
                 //this can happen on control messages
                 return;
             }
 
-            var sendOptions = context.DeliveryOptions as SendOptions;
-            if (sendOptions != null)
+            SagaUpdatedMessage sagaUpdatedMessage;
+
+            if (!context.Extensions.TryGet(out sagaUpdatedMessage))
             {
-                var sagaResultingMessage = new SagaChangeOutput
-                {
-                    
-                    ResultingMessageId = context.OutgoingMessage.Id,
-                    TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
-                    MessageType = logicalMessage.MessageType.ToString(),
-                    DeliveryDelay = sendOptions.DelayDeliveryWith,
-                    DeliveryAt = sendOptions.DeliverAt,
-                    Destination = sendOptions.Destination.ToString(),
-                    Intent = "Send" //TODO: How to get the proper message intent!?
-                };
-                sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+                return;
             }
 
-            if (context.DeliveryOptions is PublishOptions)
+            TimeSpan? deliveryDelay = null;
+            DelayDeliveryWith delayDeliveryWith;
+            if (context.Extensions.TryGetDeliveryConstraint(out delayDeliveryWith))
             {
-                var sagaResultingMessage = new SagaChangeOutput
-                {
-                    ResultingMessageId = context.OutgoingMessage.Id,
-                    TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
-                    MessageType = logicalMessage.MessageType.ToString(),
-                    //TODO: Can we remove the DeliveryDelay and DeliveryAt here??
-                    //DeliveryDelay = publishOptions.DelayDeliveryWith,
-                    //DeliveryAt = publishOptions.DeliverAt,
-                    //Destination = GetDestination(context),
-                    Intent = "Publish" //TODO: get the message intent the right way!
-                };
-                sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+                deliveryDelay = delayDeliveryWith.Delay;
             }
+
+            DateTime? doNotDeliverBefore = null;
+            DoNotDeliverBefore notDeliverBefore;
+            if (context.Extensions.TryGetDeliveryConstraint(out notDeliverBefore))
+            {
+                doNotDeliverBefore = notDeliverBefore.At;
+            }
+
+            var sagaResultingMessage = new SagaChangeOutput
+            {
+                ResultingMessageId = context.MessageId,
+                TimeSent = DateTime.UtcNow,
+                MessageType = logicalMessage.MessageType.ToString(),
+                DeliveryDelay = deliveryDelay,
+                DeliveryAt = doNotDeliverBefore,
+                Destination = GetDestinationForUnicastMessages(context),
+                Intent = context.Headers[Headers.MessageIntent]
+            };
+            sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+        }
+
+        static string GetDestinationForUnicastMessages(IOutgoingLogicalMessageContext context)
+        {
+            var sendAddressTags = context.RoutingStrategies.OfType<UnicastRoutingStrategy>()
+                .Select(urs => urs.Apply(context.Headers)).Cast<UnicastAddressTag>().ToList();
+            return sendAddressTags.Count != 1 ? null : sendAddressTags.First().Destination;
         }
     }
 }

@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
-    using Pipeline;
     using SagaAudit;
     using Transport;
 
@@ -24,8 +23,8 @@
             var backend = new ServiceControlBackend(serviceControlQueue, context.Settings.LocalAddress());
 
             context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), backend, customSagaEntitySerialization));
+            context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
 
-            context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();
             context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.Build<IDispatchMessages>()));
         }
 
@@ -48,16 +47,6 @@
             protected override Task OnStop(IMessageSession session)
             {
                 return Task.FromResult(0);
-            }
-        }
-
-
-        class CaptureSagaResultingMessageRegistration : RegisterStep
-        {
-            public CaptureSagaResultingMessageRegistration()
-                : base("ReportSagaStateChanges", typeof(CaptureSagaResultingMessagesBehavior), "Reports the saga state changes to ServiceControl")
-            {
-                InsertBefore(WellKnownStep.DispatchMessageToTransport);
             }
         }
     }
