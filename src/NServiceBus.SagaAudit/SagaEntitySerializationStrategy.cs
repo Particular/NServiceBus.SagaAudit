@@ -3,6 +3,7 @@ namespace NServiceBus.SagaAudit
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using SimpleJson;
     using SimpleJson.Reflection;
@@ -49,6 +50,20 @@ namespace NServiceBus.SagaAudit
             return result;
         }
 
+        protected override bool TrySerializeKnownTypes(object input, out object output)
+        {
+            return base.TrySerializeKnownTypes(input, out output) || TrySerializeOtherKnownTypes(input, out output);
+        }
+        static bool TrySerializeOtherKnownTypes(object input, out object output)
+        {
+            if (input is TimeSpan)
+            {
+                output = ((TimeSpan)input).ToString("g", CultureInfo.InvariantCulture);
+                return true;
+            }
+            output = null;
+            return false;
+        }
         static bool IsSerializableType(Type t)
         {
             return t.IsPrimitive || t == typeof(string) || t == typeof(Guid);
