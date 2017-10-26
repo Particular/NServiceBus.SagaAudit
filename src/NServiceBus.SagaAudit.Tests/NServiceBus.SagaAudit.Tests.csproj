@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
     <None Remove="APIApprovals.Approve.received.txt" />
+    <None Remove="*.received.txt" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="5.2.24" />

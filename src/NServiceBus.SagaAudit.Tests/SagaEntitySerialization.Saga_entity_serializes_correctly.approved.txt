@@ -1,0 +1,1 @@
+﻿{"IntProperty":42,"StringProperty":"String","GuidProperty":"00000000-0000-0000-0000-000000000000","DateProperty":"2017-10-26T13:03:13Z","NullableDateProperty":"2013-10-26T13:03:13Z","TimeProperty":"1:2:03:04","NullableTimeProperty":"5:6:07:08","$type":"NServiceBus.SagaAudit.Tests.SagaEntitySerialization+SagaEntity, NServiceBus.SagaAudit.Tests"}
