@@ -8,8 +8,8 @@
     <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaUpdatedMessage.cs" Link="SagaUpdatedMessage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="6.*" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.*" />
+    <PackageReference Include="NServiceBus" Version="6.4.1" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.4.1" />
     <PackageReference Include="NUnit" Version="3.7.1" />
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
   </ItemGroup>
