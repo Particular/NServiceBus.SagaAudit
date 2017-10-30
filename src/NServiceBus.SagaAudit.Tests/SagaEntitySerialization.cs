@@ -2,7 +2,6 @@
 {
     using System;
     using System.Runtime.CompilerServices;
-    using ApprovalTests;
     using NUnit.Framework;
 
     [TestFixture]
