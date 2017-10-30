@@ -66,7 +66,8 @@ namespace NServiceBus.SagaAudit
         }
         static bool IsSerializableType(Type t)
         {
-            return t.IsPrimitive || t == typeof(string) || t == typeof(Guid);
+            return t.IsPrimitive || t == typeof(string) || t == typeof(Guid) || t == typeof(TimeSpan) || t == typeof(DateTime) ||
+                   (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
         static ConcurrentDictionary<Type, string> typeNames = new ConcurrentDictionary<Type, string>();
