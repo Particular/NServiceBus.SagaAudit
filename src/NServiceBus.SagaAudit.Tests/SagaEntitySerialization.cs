@@ -23,7 +23,7 @@
                 NullableTimeProperty = new TimeSpan(5,6, 7, 8)
             };
             var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
-            Approvals.Verify(serialized);
+            TestApprover.Verify(serialized);
         }
 
         [Test]
@@ -38,7 +38,7 @@
                 }
             };
             var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
-            Approvals.Verify(serialized);
+            TestApprover.Verify(serialized);
         }
 
         public class SagaEntityWithNestedObject
