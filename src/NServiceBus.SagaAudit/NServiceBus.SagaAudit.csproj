@@ -12,6 +12,5 @@
     <PackageReference Include="NServiceBus" Version="5.0.0" />
     <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
     <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
-    <Reference Include="System.Configuration" />
   </ItemGroup>
 </Project>
