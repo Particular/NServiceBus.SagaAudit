@@ -132,5 +132,14 @@
 
             context.PhysicalMessage.Headers["ServiceControl.SagaStateChange"] = sagaStateChange;
         }
+
+        public class CaptureSagaStateRegistration : RegisterStep
+        {
+            public CaptureSagaStateRegistration()
+                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes")
+            {
+                InsertBefore(WellKnownStep.InvokeSaga);
+            }
+        }
     }
 }

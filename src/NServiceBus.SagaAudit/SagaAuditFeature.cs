@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using NServiceBus;
-    using Pipeline;
     using SagaAudit;
     using Transports;
 
@@ -28,26 +27,8 @@
                 .ConfigureProperty<CaptureSagaStateBehavior>(b => b.EndpointName, endpointName)
                 .ConfigureProperty<CaptureSagaStateBehavior>(b => b.CustomSagaEntitySerialization, customSagaEntitySerialization);
 
-            context.Pipeline.Register<CaptureSagaStateRegistration>();
-            context.Pipeline.Register<CaptureSagaResultingMessageRegistration>();
-        }
-
-        class CaptureSagaStateRegistration : RegisterStep
-        {
-            public CaptureSagaStateRegistration()
-                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes")
-            {
-                InsertBefore(WellKnownStep.InvokeSaga);
-            }
-        }
-
-        class CaptureSagaResultingMessageRegistration : RegisterStep
-        {
-            public CaptureSagaResultingMessageRegistration()
-                : base("ReportSagaStateChanges", typeof(CaptureSagaResultingMessagesBehavior), "Reports the saga state changes to ServiceControl")
-            {
-                InsertBefore(WellKnownStep.DispatchMessageToTransport);
-            }
+            context.Pipeline.Register<CaptureSagaStateBehavior.CaptureSagaStateRegistration>();
+            context.Pipeline.Register<CaptureSagaResultingMessagesBehavior.CaptureSagaResultingMessageRegistration>();
         }
     }
 }

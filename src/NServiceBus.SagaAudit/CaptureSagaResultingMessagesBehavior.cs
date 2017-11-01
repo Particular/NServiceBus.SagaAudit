@@ -34,7 +34,6 @@
             {
                 var sagaResultingMessage = new SagaChangeOutput
                 {
-                    
                     ResultingMessageId = context.OutgoingMessage.Id,
                     TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
                     MessageType = logicalMessage.MessageType.ToString(),
@@ -60,6 +59,15 @@
                     Intent = "Publish" //TODO: get the message intent the right way!
                 };
                 sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+            }
+        }
+
+        public class CaptureSagaResultingMessageRegistration : RegisterStep
+        {
+            public CaptureSagaResultingMessageRegistration()
+                : base("ReportSagaStateChanges", typeof(CaptureSagaResultingMessagesBehavior), "Reports the saga state changes to ServiceControl")
+            {
+                InsertBefore(WellKnownStep.DispatchMessageToTransport);
             }
         }
     }
