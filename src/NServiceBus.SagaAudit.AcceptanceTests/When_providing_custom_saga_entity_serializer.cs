@@ -45,7 +45,7 @@
                 EndpointSetup<DefaultServer>(config =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    config.AuditSagaStateChanges(Address.Parse(receiverEndpoint), e =>
+                    config.AuditSagaStateChanges(receiverEndpoint, e =>
                     {
                         var typedEntity = (MySaga.MySagaData)e;
 

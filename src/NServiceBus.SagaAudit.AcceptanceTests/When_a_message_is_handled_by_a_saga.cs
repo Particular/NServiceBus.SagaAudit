@@ -78,7 +78,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    c.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
+                    c.AuditSagaStateChanges(receiverEndpoint);
                 }).AuditTo<FakeServiceControl>();
             }
 

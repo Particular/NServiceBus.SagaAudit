@@ -4,6 +4,6 @@ namespace NServiceBus
 {
     public class static SagaAuditConfigurationExtensions
     {
-        public static void AuditSagaStateChanges(this NServiceBus.BusConfiguration config, NServiceBus.Address serviceControlQueue, System.Func<object, System.Collections.Generic.Dictionary<string, string>> customSagaEntitySerialization = null) { }
+        public static void AuditSagaStateChanges(this NServiceBus.BusConfiguration config, string serviceControlQueue, System.Func<object, System.Collections.Generic.Dictionary<string, string>> customSagaEntitySerialization = null) { }
     }
 }

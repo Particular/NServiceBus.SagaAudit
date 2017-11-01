@@ -96,7 +96,7 @@
                 EndpointSetup<DefaultServer>(config =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
-                    config.AuditSagaStateChanges(Address.Parse(receiverEndpoint));
+                    config.AuditSagaStateChanges(receiverEndpoint);
                     config.EnableFeature<TimeoutManager>();
                 });
             }

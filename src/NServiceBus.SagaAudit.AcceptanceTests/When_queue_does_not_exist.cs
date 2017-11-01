@@ -21,14 +21,14 @@
             Assert.IsTrue(context.Done);
             StringAssert.Contains("You have ServiceControl plugins installed in your endpoint, however, this endpoint is unable to contact the ServiceControl Backend to report endpoint information", context.Exceptions);
         }
-        
+
         class EndpointWithASaga : EndpointConfigurationBuilder
         {
             public EndpointWithASaga()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.AuditSagaStateChanges(Address.Parse("InvalidAddress"));
+                    c.AuditSagaStateChanges("InvalidAddress");
                 });
             }
 
