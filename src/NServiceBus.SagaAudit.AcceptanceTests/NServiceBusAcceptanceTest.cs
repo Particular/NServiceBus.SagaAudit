@@ -24,12 +24,9 @@ namespace NServiceBus.SagaAudit.AcceptanceTests
 
                 var endpointBuilder = classAndEndpoint.Split('+').Last();
 
-                
                 testName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(testName);
-              
+
                 testName = testName.Replace("_", "");
-
-
 
                 return testName +"."+ endpointBuilder;
             };
