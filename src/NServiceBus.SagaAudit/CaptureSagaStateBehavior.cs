@@ -110,7 +110,7 @@
 
         static void AssignSagaStateChangeCausedByMessage(SagaUpdatedMessage sagaAudit, IncomingContext context)
         {
-            if (!context.PhysicalMessage.Headers.TryGetValue("ServiceControl.SagaStateChange", out var sagaStateChange))
+            if (!context.PhysicalMessage.Headers.TryGetValue(SagaAuditHeaders.SagaStateChange, out var sagaStateChange))
             {
                 sagaStateChange = string.Empty;
             }
@@ -131,7 +131,7 @@
             }
             sagaStateChange += $"{sagaAudit.SagaId}:{statechange}";
 
-            context.PhysicalMessage.Headers["ServiceControl.SagaStateChange"] = sagaStateChange;
+            context.PhysicalMessage.Headers[SagaAuditHeaders.SagaStateChange] = sagaStateChange;
         }
 
         public class CaptureSagaStateRegistration : RegisterStep
