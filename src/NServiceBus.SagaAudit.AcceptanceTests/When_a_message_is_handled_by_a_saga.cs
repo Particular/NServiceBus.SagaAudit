@@ -5,6 +5,7 @@
     using AcceptanceTesting;
     using EndpointTemplates;
     using NServiceBus;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
@@ -62,7 +63,7 @@
         class Context : ScenarioContext
         {
             public bool MessageAudited { get; set; }
-            public IReadOnlyDictionary<string, string> Headers { get; set; }
+            public IDictionary<string, string> Headers { get; set; }
             public Guid SagaId { get; set; }
             public Guid AlternativeSagaId { get; set; }
         }

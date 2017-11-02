@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.SagaAudit.AcceptanceTests.ScenarioDescriptors
+﻿namespace NServiceBus.AcceptanceTests.ScenarioDescriptors
 {
     using System;
     using System.Collections.Generic;
@@ -25,7 +25,7 @@
                     activeTransports = new List<RunDescriptor>
                     {
                         Transports.Default
-                    }; 
+                    };
                 }
 
                 return activeTransports;
@@ -99,7 +99,7 @@
 
                     assemblies = result.Assemblies;
                 }
-                    
+
                 return assemblies;
             }
         }

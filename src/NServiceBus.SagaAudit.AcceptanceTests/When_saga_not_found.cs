@@ -4,6 +4,7 @@
     using AcceptanceTesting;
     using EndpointTemplates;
     using NServiceBus;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;

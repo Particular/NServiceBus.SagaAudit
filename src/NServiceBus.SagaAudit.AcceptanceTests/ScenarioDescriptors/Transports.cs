@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.SagaAudit.AcceptanceTests.ScenarioDescriptors
+﻿namespace NServiceBus.AcceptanceTests.ScenarioDescriptors
 {
     using System;
     using System.Collections.Generic;
@@ -52,7 +52,7 @@
         {
             var foundTransportDefinitions = TypeScanner.GetAllTypesAssignableTo<TransportDefinition>();
 
-            
+
             foreach (var transportDefinitionType in foundTransportDefinitions)
             {
                 var key = transportDefinitionType.Name;
