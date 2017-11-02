@@ -25,8 +25,6 @@
                 .Run();
 
             string invokedSagasHeaderValue;
-
-            Assert.IsTrue(context.MessageAudited);
             Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.AreEqual($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}", invokedSagasHeaderValue);
         }
@@ -46,32 +44,30 @@
                 .Run();
 
             string invokedSagasHeaderValue;
-
-            Assert.IsTrue(context.MessageAudited);
             Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), "TheEndpointsSaga header value is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), "TheEndpointsSagaAlternative header value is missing");
         }
 
-        public class MessageToBeAudited : IMessage
+        class MessageToBeAudited : ICommand
         {
             public Guid Id { get; set; }
         }
 
-        public class MessageToBeAuditedByMultiple : ICommand
+        class MessageToBeAuditedByMultiple : ICommand
         {
             public Guid Id { get; set; }
         }
 
-        public class Context : ScenarioContext
+        class Context : ScenarioContext
         {
             public bool MessageAudited { get; set; }
-            public IDictionary<string, string> Headers { get; set; }
+            public IReadOnlyDictionary<string, string> Headers { get; set; }
             public Guid SagaId { get; set; }
             public Guid AlternativeSagaId { get; set; }
         }
 
-        public class EndpointWithASaga : EndpointConfigurationBuilder
+        class EndpointWithASaga : EndpointConfigurationBuilder
         {
             public EndpointWithASaga()
             {

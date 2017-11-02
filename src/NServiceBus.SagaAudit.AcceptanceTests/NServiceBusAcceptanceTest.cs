@@ -1,6 +1,7 @@
-namespace NServiceBus.SagaAudit.AcceptanceTests
+namespace NServiceBus.AcceptanceTests
 {
     using System.Linq;
+    using System.Threading;
     using AcceptanceTesting.Customization;
     using NUnit.Framework;
 
@@ -24,7 +25,7 @@ namespace NServiceBus.SagaAudit.AcceptanceTests
 
                 var endpointBuilder = classAndEndpoint.Split('+').Last();
 
-                testName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(testName);
+                testName = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(testName);
 
                 testName = testName.Replace("_", "");
 
