@@ -70,7 +70,7 @@
             var messageType = context.IncomingLogicalMessage.MessageType.FullName;
             var headers = context.IncomingLogicalMessage.Headers;
 
-            sagaAudit.Initiator = BuildSagaChangeInitatorMessage(headers, messageId, messageType);
+            sagaAudit.Initiator = BuildSagaChangeInitiatorMessage(headers, messageId, messageType);
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.IsCompleted = saga.Completed;
             sagaAudit.Endpoint = EndpointName;
@@ -82,7 +82,7 @@
             backend.Send(sagaAudit);
         }
 
-        public static SagaChangeInitiator BuildSagaChangeInitatorMessage(Dictionary<string, string> headers, string messageId, string messageType )
+        public static SagaChangeInitiator BuildSagaChangeInitiatorMessage(Dictionary<string, string> headers, string messageId, string messageType )
         {
             headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine);
 
