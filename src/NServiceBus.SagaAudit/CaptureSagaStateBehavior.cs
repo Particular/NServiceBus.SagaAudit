@@ -82,7 +82,7 @@
             backend.Send(sagaAudit);
         }
 
-        public static SagaChangeInitiator BuildSagaChangeInitiatorMessage(Dictionary<string, string> headers, string messageId, string messageType )
+        public static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType )
         {
             headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine);
 
