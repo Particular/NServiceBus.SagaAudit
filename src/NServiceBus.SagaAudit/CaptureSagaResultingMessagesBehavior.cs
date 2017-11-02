@@ -29,37 +29,22 @@
                 return;
             }
 
-            var sendOptions = context.DeliveryOptions as SendOptions;
-            if (sendOptions != null)
+            var sagaResultingMessage = new SagaChangeOutput
             {
-                var sagaResultingMessage = new SagaChangeOutput
-                {
-                    ResultingMessageId = context.OutgoingMessage.Id,
-                    TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
-                    MessageType = logicalMessage.MessageType.ToString(),
-                    DeliveryDelay = sendOptions.DelayDeliveryWith,
-                    DeliveryAt = sendOptions.DeliverAt,
-                    Destination = sendOptions.Destination.ToString(),
-                    Intent = "Send" //TODO: How to get the proper message intent!?
-                };
-                sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
+                ResultingMessageId = context.OutgoingMessage.Id,
+                TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
+                MessageType = logicalMessage.MessageType.ToString(),
+                Intent = context.OutgoingMessage.Headers[Headers.MessageIntent]
+            };
+
+            if (context.DeliveryOptions is SendOptions sendOptions)
+            {
+                sagaResultingMessage.DeliveryDelay = sendOptions.DelayDeliveryWith;
+                sagaResultingMessage.DeliveryAt = sendOptions.DeliverAt;
+                sagaResultingMessage.Destination = sendOptions.Destination.ToString();
             }
 
-            if (context.DeliveryOptions is PublishOptions)
-            {
-                var sagaResultingMessage = new SagaChangeOutput
-                {
-                    ResultingMessageId = context.OutgoingMessage.Id,
-                    TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
-                    MessageType = logicalMessage.MessageType.ToString(),
-                    //TODO: Can we remove the DeliveryDelay and DeliveryAt here??
-                    //DeliveryDelay = publishOptions.DelayDeliveryWith,
-                    //DeliveryAt = publishOptions.DeliverAt,
-                    //Destination = GetDestination(context),
-                    Intent = "Publish" //TODO: get the message intent the right way!
-                };
-                sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
-            }
+            sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
         }
 
         public class CaptureSagaResultingMessageRegistration : RegisterStep
