@@ -7,6 +7,7 @@
     using Saga;
     using Sagas;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using SimpleJson;
 
     class CaptureSagaStateBehavior : IBehavior<IncomingContext>
     {
@@ -59,11 +60,11 @@
             string sagaStateString;
             if (CustomSagaEntitySerialization != null)
             {
-                sagaStateString = SimpleJson.SimpleJson.SerializeObject(CustomSagaEntitySerialization(saga.Entity));
+                sagaStateString = SimpleJson.SerializeObject(CustomSagaEntitySerialization(saga.Entity));
             }
             else
             {
-                sagaStateString = SimpleJson.SimpleJson.SerializeObject(saga.Entity, sagaEntitySerializationStrategy);
+                sagaStateString = SimpleJson.SerializeObject(saga.Entity, sagaEntitySerializationStrategy);
             }
 
             var messageType = context.IncomingLogicalMessage.MessageType.FullName;
