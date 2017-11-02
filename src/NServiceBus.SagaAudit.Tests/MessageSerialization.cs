@@ -46,6 +46,5 @@
             var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new MessageSerializationStrategy());
             TestApprover.Verify(serialized);
         }
-        
     }
 }
