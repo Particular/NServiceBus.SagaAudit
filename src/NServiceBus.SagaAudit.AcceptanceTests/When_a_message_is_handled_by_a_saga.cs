@@ -25,8 +25,7 @@
                 .Done(c => c.MessageAudited)
                 .Run();
 
-            string invokedSagasHeaderValue;
-            Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
+            Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.AreEqual($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}", invokedSagasHeaderValue);
         }
 
@@ -44,8 +43,7 @@
                 .Done(c => c.MessageAudited)
                 .Run();
 
-            string invokedSagasHeaderValue;
-            Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out invokedSagasHeaderValue), "InvokedSagas header is missing");
+            Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), "InvokedSagas header is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), "TheEndpointsSaga header value is missing");
             Assert.IsTrue(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), "TheEndpointsSagaAlternative header value is missing");
         }

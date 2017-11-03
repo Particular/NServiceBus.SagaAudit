@@ -130,7 +130,6 @@
             public class TestDelayedByCommandHandler : IHandleMessages<TestDelayedByCommand>
             {
                 public Context TestContext { get; set; }
-                public IBus Bus { get; set; }
                 public void Handle(TestDelayedByCommand message)
                 {
                     TestContext.DelayedByCommandHandled = true;
@@ -140,7 +139,6 @@
             public class TestDelayAtCommandHandler : IHandleMessages<TestDelayAtCommand>
             {
                 public Context TestContext { get; set; }
-                public IBus Bus { get; set; }
                 public void Handle(TestDelayAtCommand message)
                 {
                     TestContext.DelayAtCommandHandled = true;
