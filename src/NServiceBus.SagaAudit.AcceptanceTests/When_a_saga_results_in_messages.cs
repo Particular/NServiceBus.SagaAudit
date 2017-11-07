@@ -29,7 +29,7 @@
                     });
                 }))
                 .Done(c => c.WasStarted && c.CommandHandled && c.DelayedByCommandHandled && c.DelayAtCommandHandled && c.EventHandled && c.SagaUpdateMessageReceived)
-                .Run();
+                .Run(TimeSpan.FromSeconds(120));
 
             var sagaupdate = context.SagaUpdatedMessage;
 
