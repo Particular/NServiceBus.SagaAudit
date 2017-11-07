@@ -65,6 +65,8 @@
             public TimeSpan TimeProperty { get; set; }
             public TimeSpan? NullableTimeProperty { get; set; }
             public NestedObject NestedObjectProperty { get; set; }
+            public static string StaticProperty { get; set; } = "test";
+            string PrivateProperty { get; set; } = "test";
         }
     }
 }
