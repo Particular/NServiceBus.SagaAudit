@@ -19,8 +19,12 @@
                 NullableDateProperty = new DateTime(2013, 10, 26, 13, 3, 13, DateTimeKind.Utc),
                 GuidProperty = Guid.Empty,
                 StringProperty = "String",
-                TimeProperty = new TimeSpan(1,2, 3, 4),
-                NullableTimeProperty = new TimeSpan(5,6, 7, 8)
+                TimeProperty = new TimeSpan(1, 2, 3, 4),
+                NullableTimeProperty = new TimeSpan(5, 6, 7, 8),
+                NestedObjectProperty = new NestedObject
+                {
+                    IntProperty = 1
+                }
             };
             var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
             TestApprover.Verify(serialized);
@@ -60,6 +64,7 @@
             public DateTime? NullableDateProperty { get; set; }
             public TimeSpan TimeProperty { get; set; }
             public TimeSpan? NullableTimeProperty { get; set; }
+            public NestedObject NestedObjectProperty { get; set; }
         }
     }
 }
