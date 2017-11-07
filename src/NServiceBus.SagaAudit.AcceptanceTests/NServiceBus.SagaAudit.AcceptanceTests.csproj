@@ -11,9 +11,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="5.2.24" />
-    <PackageReference Include="NUnit" Version="3.7.1" />
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="5.2.24" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.7.1" />
   </ItemGroup>
 
 </Project>
