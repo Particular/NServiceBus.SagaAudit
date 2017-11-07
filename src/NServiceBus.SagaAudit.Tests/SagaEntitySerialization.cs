@@ -3,6 +3,7 @@
     using System;
     using System.Runtime.CompilerServices;
     using NUnit.Framework;
+    using SimpleJson;
 
     [TestFixture]
     public class SagaEntitySerialization
@@ -21,7 +22,7 @@
                 TimeProperty = new TimeSpan(1,2, 3, 4),
                 NullableTimeProperty = new TimeSpan(5,6, 7, 8)
             };
-            var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
+            var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
             TestApprover.Verify(serialized);
         }
 
@@ -36,7 +37,7 @@
                     IntProperty = 42
                 }
             };
-            var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
+            var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
             TestApprover.Verify(serialized);
         }
 
