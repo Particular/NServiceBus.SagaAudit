@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
     <None Remove="ApprovalFiles\*.received.txt" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="5.2.24" />
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" /> <!-- Current version used by ServiceInsight-->
@@ -18,4 +21,5 @@
     <PackageReference Include="ApprovalTests" Version="3.0.13" />
     <PackageReference Include="PublicApiGenerator" Version="6.4.0" />
   </ItemGroup>
+
 </Project>
