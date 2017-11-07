@@ -7,10 +7,13 @@
   </PropertyGroup>
   <PropertyGroup>
     <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="5.0.0" />
-    <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
     <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
   </ItemGroup>
 </Project>
