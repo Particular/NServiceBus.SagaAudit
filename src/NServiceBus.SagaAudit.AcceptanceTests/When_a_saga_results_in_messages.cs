@@ -7,8 +7,11 @@
     using EndpointTemplates;
     using Features;
     using NUnit.Framework;
+    using Pipeline;
+    using Pipeline.Contexts;
     using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using Unicast.Subscriptions;
 
     class When_a_saga_results_in_messages
     {
@@ -21,7 +24,7 @@
                     Id = contextId
                 })
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<Endpoint>(b => b.When(session =>
+                .WithEndpoint<Endpoint>(b => b.Given(session => session.Subscribe<TestEvent>()).When(ctx => ctx.Subscribed, session =>
                 {
                     session.SendLocal(new StartSaga
                     {
@@ -29,7 +32,7 @@
                     });
                 }))
                 .Done(c => c.WasStarted && c.CommandHandled && c.DelayedByCommandHandled && c.DelayAtCommandHandled && c.EventHandled && c.SagaUpdateMessageReceived)
-                .Run(TimeSpan.FromSeconds(120));
+                .Run();
 
             var sagaupdate = context.SagaUpdatedMessage;
 
@@ -70,6 +73,7 @@
             public string MessageId { get; set; }
             public bool DelayedByCommandHandled { get; set; }
             public bool DelayAtCommandHandled { get; set; }
+            public bool Subscribed { get; set; }
         }
 
         class Endpoint : EndpointConfigurationBuilder
@@ -81,6 +85,11 @@
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.EnableFeature<TimeoutManager>();
                     config.AuditSagaStateChanges(receiverEndpoint);
+                    config.OnEndpointSubscribed<Context>((s, context) =>
+                    {
+                        context.Subscribed = true;
+                    });
+                    config.DisableFeature<AutoSubscribe>();
                 })
                 .AddMapping<TestEvent>(typeof(Endpoint))
                 .AddMapping<TestCommand>(typeof(Endpoint));
@@ -193,5 +202,59 @@
 
         public class TestEvent : IEvent
         { }
+    }
+
+    static class SubscriptionBehaviorExtensions
+    {
+        public static void OnEndpointSubscribed<TContext>(this BusConfiguration b, Action<SubscriptionEventArgs, TContext> action) where TContext : ScenarioContext
+        {
+            b.Pipeline.Register<SubscriptionBehavior<TContext>.Registration>();
+
+            b.RegisterComponents(c => c.ConfigureComponent(builder =>
+            {
+                var context = builder.Build<TContext>();
+                return new SubscriptionBehavior<TContext>(action, context);
+            }, DependencyLifecycle.InstancePerCall));
+        }
+    }
+
+    class SubscriptionBehavior<TContext> : IBehavior<IncomingContext> where TContext : ScenarioContext
+    {
+        readonly Action<SubscriptionEventArgs, TContext> action;
+        readonly TContext scenarioContext;
+
+        public SubscriptionBehavior(Action<SubscriptionEventArgs, TContext> action, TContext scenarioContext)
+        {
+            this.action = action;
+            this.scenarioContext = scenarioContext;
+        }
+
+        public void Invoke(IncomingContext context, Action next)
+        {
+            next();
+            var subscriptionMessageType = GetSubscriptionMessageTypeFrom(context.PhysicalMessage);
+            if (subscriptionMessageType != null)
+            {
+                action(new SubscriptionEventArgs
+                {
+                    MessageType = subscriptionMessageType,
+                    SubscriberReturnAddress = context.PhysicalMessage.ReplyToAddress
+                }, scenarioContext);
+            }
+        }
+
+        static string GetSubscriptionMessageTypeFrom(TransportMessage msg)
+        {
+            return (from header in msg.Headers where header.Key == Headers.SubscriptionMessageType select header.Value).FirstOrDefault();
+        }
+
+        internal class Registration : RegisterStep
+        {
+            public Registration()
+                : base("SubscriptionBehavior", typeof(SubscriptionBehavior<TContext>), "So we can get subscription events")
+            {
+                InsertBefore(WellKnownStep.CreateChildContainer);
+            }
+        }
     }
 }
