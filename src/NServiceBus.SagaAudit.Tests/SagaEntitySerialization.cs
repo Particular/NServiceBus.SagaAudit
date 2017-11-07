@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using ApprovalUtilities.Utilities;
     using NUnit.Framework;
     using ServiceInsight.Saga;
     using SimpleJson;
@@ -96,6 +97,33 @@
             });
         }
 
+        [Test]
+        public void Saga_entity_compatible_with_legacy_plugin()
+        {
+            var entity = new SagaEntity
+            {
+                IntProperty = 42,
+                DateProperty = new DateTime(2017, 10, 26, 13, 3, 13, DateTimeKind.Utc),
+                NullableDateProperty = new DateTime(2013, 10, 26, 13, 3, 13, DateTimeKind.Utc),
+                GuidProperty = Guid.Empty,
+                StringProperty = "String",
+                TimeProperty = new TimeSpan(1, 2, 3, 4),
+                NullableTimeProperty = new TimeSpan(5, 6, 7, 8)
+            };
+            var sagaDataJson = SimpleJson.SerializeObject(new[] { entity }, new SagaEntitySerializationStrategy());
+            var legacySagaDataJson = ServiceControl.Plugins.Nsb5.SagaAudit.Serializer.Serialize(entity);
+
+            var sagaDataProperties = JsonPropertiesHelper.ProcessArray(sagaDataJson);
+            var legacySagaDataProperties = JsonPropertiesHelper.ProcessArray(legacySagaDataJson);
+
+            sagaDataProperties.ForEach(p =>
+            {
+                var legacyProperty = legacySagaDataProperties.SingleOrDefault(lp => lp.Key == p.Key);
+                Assert.IsNotNull(legacyProperty, $"{p.Key} not found");
+                Assert.AreEqual(legacyProperty.Value, p.Value, p.Key);
+            });
+        }
+
         public class SagaEntityWithNestedObject
         {
             public NestedObject NestedObject { get; set; }
@@ -140,4 +168,33 @@ namespace ServiceInsight.Saga
         public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
     }
 }
+
+namespace ServiceControl.Plugins.Nsb5.SagaAudit
+{
+    using System.IO;
+    using NServiceBus.Serializers.Binary;
+    using NServiceBus.Serializers.Json;
+
+    class Serializer
+    {
+        static JsonMessageSerializer serializer;
+
+        static Serializer()
+        {
+            serializer = new JsonMessageSerializer(new SimpleMessageMapper());
+        }
+
+        public static string Serialize(object sagaEntity)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                serializer.Serialize(new[] { sagaEntity }, memoryStream);
+                memoryStream.Position = 0;
+                using (var streamReader = new StreamReader(memoryStream))
+                {
+                    return streamReader.ReadToEnd();
+                }
+            }
+        }
+    }
 }
