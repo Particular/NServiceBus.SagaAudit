@@ -58,6 +58,7 @@ namespace NServiceBus.SagaAudit
         {
             return base.TrySerializeKnownTypes(input, out output) || TrySerializeOtherKnownTypes(input, out output);
         }
+
         static bool TrySerializeOtherKnownTypes(object input, out object output)
         {
             if (input is TimeSpan)
