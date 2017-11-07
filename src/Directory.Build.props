@@ -1,17 +1,8 @@
 <Project>
 
   <PropertyGroup>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>latest</LangVersion>
-    <Authors Condition="'$(Authors)' == ''">Particular Software</Authors>
-    <Company Condition="'$(Company)' == ''">NServiceBus Ltd</Company>
-    <PackageLicenseUrl Condition="'$(PackageLicenseUrl)' == ''">http://particular.net/LicenseAgreement</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance Condition="'$(PackageRequireLicenseAcceptance)' == ''">true</PackageRequireLicenseAcceptance>
-    <Copyright Condition="'$(Copyright)' == ''">© 2010-$([System.DateTime]::UtcNow.ToString(yyyy)) NServiceBus Ltd. All rights reserved.</Copyright>
-    <PackageTags Condition="'$(PackageTags)' == ''">nservicebus messaging</PackageTags>
-    <PackageIconUrl Condition="'$(PackageIconUrl)' == ''">http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</PackageIconUrl>
-    <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">..\..\nugets</PackageOutputPath>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludePDBsInPackage</TargetsForTfmSpecificContentInPackage>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
 </Project>
