@@ -58,7 +58,7 @@ namespace NServiceBus.SagaAudit
         {
             if (input is TimeSpan)
             {
-                output = ((TimeSpan)input).ToString("g", CultureInfo.InvariantCulture);
+                output = ((TimeSpan)input).ToString("c", CultureInfo.InvariantCulture);
                 return true;
             }
             output = null;
