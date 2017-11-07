@@ -13,23 +13,27 @@ namespace NServiceBus.SagaAudit
         protected override bool TrySerializeUnknownTypes(object input, out object output)
         {
             var baseResult = base.TrySerializeUnknownTypes(input, out output);
-            if (baseResult)
-            {
-                var obj = (JsonObject)output;
-                var entityTypeName = typeNames.GetOrAdd(input.GetType(), t =>
-                {
-                    var sagaEntityTypeName = t.AssemblyQualifiedName;
-                    var nameParts = sagaEntityTypeName.Split(new[]
-                    {
-                            ','
-                    }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-                    var nameAndAssembly = $"{nameParts[0]}, {nameParts[1]}";
-                    return nameAndAssembly;
-                });
 
-                obj["$type"] = entityTypeName;
+            if (!baseResult)
+            {
+                return false;
             }
-            return baseResult;
+
+            var obj = (JsonObject)output;
+            var entityTypeName = typeNames.GetOrAdd(input.GetType(), t =>
+            {
+                var sagaEntityTypeName = t.AssemblyQualifiedName;
+                var nameParts = sagaEntityTypeName.Split(new[]
+                {
+                    ','
+                }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+                var nameAndAssembly = $"{nameParts[0]}, {nameParts[1]}";
+                return nameAndAssembly;
+            });
+
+            obj["$type"] = entityTypeName;
+
+            return true;
         }
 
         internal override IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
