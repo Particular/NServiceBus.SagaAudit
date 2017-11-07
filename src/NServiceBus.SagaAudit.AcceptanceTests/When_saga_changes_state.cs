@@ -66,18 +66,6 @@
             Assert.IsNotEmpty(firstSagaChange.Initiator.OriginatingEndpoint, "Initiator.OriginatingEndpoint has not been set");
             Assert.AreEqual(firstSagaChange.Initiator.MessageType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+StartSaga", "First message initiator MessageType is incorrect");
             Assert.IsNotNull(firstSagaChange.Initiator.TimeSent, "Initiator.TimeSent has not been set");
-
-            //SagaUpdateMessages.ResultingMessages Asserts
-            Assert.AreEqual(firstSagaChange.ResultingMessages.First().MessageType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+Sender+MySaga+TimeHasPassed", "ResultingMessage.MessageType is not set or incorrect");
-            Assert.Greater(firstSagaChange.ResultingMessages.First().TimeSent, DateTime.MinValue, "ResultingMessage.TimeSent has not been set");
-            //Assert.IsNotNull(firstSagaChange.ResultingMessages.First().DeliveryAt, "ResultingMessage.DeliveryAt has not been set");
-            //Assert.IsNotNull(firstSagaChange.ResultingMessages.First().DeliveryDelay, "ResultingMessage.DeliveryDelay has not been set");
-            Assert.IsNotNull(firstSagaChange.ResultingMessages.First().Destination, "ResultingMessage.Destination has not been set");
-            Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().Destination, "ResultingMessage.Destination has not been set");
-            Assert.IsNotNull(firstSagaChange.ResultingMessages.First().ResultingMessageId, "ResultingMessage.ResultingMessageId has not been not set");
-            Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().ResultingMessageId, "ResultingMessage.ResultingMessageId has not been not set");
-            Assert.IsNotNull(firstSagaChange.ResultingMessages.First().Intent, "ResultingMessage.Intent has not been set");
-            Assert.IsNotEmpty(firstSagaChange.ResultingMessages.First().Intent, "ResultingMessage.Intent has not been set");
         }
 
         class Context : ScenarioContext
