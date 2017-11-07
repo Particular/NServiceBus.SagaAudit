@@ -14,8 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Autofac" Version="5.*" />
-    <PackageReference Include="Autofac" Version="4.*" />
+    <PackageReference Include="NServiceBus" Version="5.2.24" />
   </ItemGroup>
 
 </Project>

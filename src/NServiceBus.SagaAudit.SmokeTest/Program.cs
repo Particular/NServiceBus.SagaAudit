@@ -4,7 +4,6 @@
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
     using NServiceBus;
 
     class Program
@@ -13,18 +12,18 @@
         {
             Console.Title = "NServiceBus.SagaAudit.SmokeTest";
 
-            var builder = new ContainerBuilder();
-
             var masters = new ConcurrentDictionary<Guid, bool>();
             var cancellationSource = new CancellationTokenSource();
 
-            builder.RegisterInstance(masters);
-            builder.RegisterInstance(cancellationSource);
-            var container = builder.Build();
-
             var busConfiguration = new BusConfiguration();
+
+            busConfiguration.RegisterComponents(c =>
+            {
+                c.RegisterSingleton(masters);
+                c.RegisterSingleton(cancellationSource);
+            });
+
             busConfiguration.EndpointName("NServiceBus.SagaAudit.SmokeTest");
-            busConfiguration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             busConfiguration.UseSerialization<JsonSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<InMemoryPersistence>();
@@ -70,6 +69,7 @@
             finally
             {
                 bus.Dispose();
+                Console.WriteLine("Smoke test completed. Press any key to exit.");
                 Console.ReadKey();
             }
         }
