@@ -34,21 +34,6 @@
         }
 
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public void It_does_not_serialize_nested_objects()
-        {
-            var entity = new SagaEntityWithNestedObject
-            {
-                NestedObject = new NestedObject
-                {
-                    IntProperty = 42
-                }
-            };
-            var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
-            TestApprover.Verify(serialized);
-        }
-
-        [Test]
         public void Saga_entity_compatible_with_serviceinsight()
         {
             var entity = new SagaEntity

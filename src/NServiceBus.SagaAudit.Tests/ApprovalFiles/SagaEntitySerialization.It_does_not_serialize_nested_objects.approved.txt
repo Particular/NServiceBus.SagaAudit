@@ -1,1 +1,0 @@
-﻿{"$type":"NServiceBus.SagaAudit.Tests.SagaEntitySerialization+SagaEntityWithNestedObject, NServiceBus.SagaAudit.Tests"}
