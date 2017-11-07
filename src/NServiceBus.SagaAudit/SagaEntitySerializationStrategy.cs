@@ -40,7 +40,7 @@ namespace NServiceBus.SagaAudit
                 if (propertyInfo.CanRead)
                 {
                     var getMethod = ReflectionUtils.GetGetterMethodInfo(propertyInfo);
-                    if (getMethod.IsStatic || !getMethod.IsPublic || !IsSerializableType(propertyInfo.PropertyType))
+                    if (getMethod.IsStatic || !getMethod.IsPublic)
                     {
                         continue;
                     }
@@ -63,11 +63,6 @@ namespace NServiceBus.SagaAudit
             }
             output = null;
             return false;
-        }
-        static bool IsSerializableType(Type t)
-        {
-            return t.IsPrimitive || t == typeof(string) || t == typeof(Guid) || t == typeof(TimeSpan) || t == typeof(DateTime) ||
-                   (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
         static ConcurrentDictionary<Type, string> typeNames = new ConcurrentDictionary<Type, string>();
