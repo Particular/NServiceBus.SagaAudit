@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\Particular.Packaging.props" />
+
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
     <SignAssembly>true</SignAssembly>
@@ -9,16 +11,17 @@
   <PropertyGroup>
     <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="5.0.0" />
+    <PackageReference Include="NServiceBus" Version="[5.0.0, 6)" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Particular.CodeRules" Version="*" PrivateAssets="All" />
     <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
   </ItemGroup>
+
+  <Import Project="..\Particular.Packaging.targets" />
 
 </Project>

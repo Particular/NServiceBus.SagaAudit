@@ -1,15 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452</TargetFrameworks>
+    <TargetFramework>net452</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Configuration" />
-    <PackageReference Include="NServiceBus.Autofac" Version="[5.*,6.0.0)" />
-    <PackageReference Include="Autofac" Version="[4.*,6.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.Autofac" Version="5.*" />
+    <PackageReference Include="Autofac" Version="4.*" />
   </ItemGroup>
 
 </Project>
