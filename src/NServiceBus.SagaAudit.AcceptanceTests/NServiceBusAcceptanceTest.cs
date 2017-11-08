@@ -31,8 +31,6 @@ namespace NServiceBus.AcceptanceTests
 
                 return testName +"."+ endpointBuilder;
             };
-
-            Conventions.DefaultRunDescriptor = () => ScenarioDescriptors.Transports.Default;
         }
     }
 }
