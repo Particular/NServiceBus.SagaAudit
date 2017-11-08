@@ -10,10 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NServiceBus" Version="6.4.1" />
   </ItemGroup>
 
