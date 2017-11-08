@@ -10,29 +10,35 @@
     {
         static void Main()
         {
+            AsyncMain().GetAwaiter().GetResult();
+        }
+
+        static async Task AsyncMain()
+        {
             Console.Title = "NServiceBus.SagaAudit.SmokeTest";
 
             var masters = new ConcurrentDictionary<Guid, bool>();
             var cancellationSource = new CancellationTokenSource();
 
-            var busConfiguration = new BusConfiguration();
 
+
+            var busConfiguration = new EndpointConfiguration("NServiceBus.SagaAudit.SmokeTest");
             busConfiguration.RegisterComponents(c =>
             {
                 c.RegisterSingleton(masters);
                 c.RegisterSingleton(cancellationSource);
             });
-
-            busConfiguration.EndpointName("NServiceBus.SagaAudit.SmokeTest");
             busConfiguration.UseSerialization<JsonSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<InMemoryPersistence>();
+            busConfiguration.SendFailedMessagesTo("error");
+            busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 
-            busConfiguration.UseTransport<MsmqTransport>();
+            var routing = busConfiguration.UseTransport<MsmqTransport>().Routing();
+            routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 
-            var startableBus = Bus.Create(busConfiguration);
-            var bus = startableBus.Start();
+            var endpoint = await Endpoint.Start(busConfiguration);
 
             var token = cancellationSource.Token;
 
@@ -52,14 +58,13 @@
                     {
                         Identifier = masterId
                     };
-                    bus.SendLocal(startMasterAlpha);
-                    bus.SendLocal(startMasterBeta);
+                    await Task.WhenAll(endpoint.SendLocal(startMasterAlpha), endpoint.SendLocal(startMasterBeta));
                 }
                 do
                 {
                     try
                     {
-                        Task.Delay(2000, token).GetAwaiter().GetResult();
+                        await Task.Delay(2000, token);
                     }
                     catch (TaskCanceledException)
                     {
@@ -68,7 +73,7 @@
             }
             finally
             {
-                bus.Dispose();
+                await endpoint.Stop();
                 Console.WriteLine("Smoke test completed. Press any key to exit.");
                 Console.ReadKey();
             }

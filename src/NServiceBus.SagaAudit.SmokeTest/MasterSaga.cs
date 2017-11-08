@@ -1,9 +1,9 @@
 namespace NServiceBus.SagaAudit.SmokeTest
 {
     using System;
+    using System.Threading.Tasks;
     using Logging;
     using NServiceBus;
-    using Saga;
 
     class MasterSaga : Saga<MasterSagaData>,
         IAmStartedByMessages<StartMasterAlpha>,
@@ -12,13 +12,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
         IHandleMessages<WorkRequestedAt>,
         IHandleMessages<ChildFinished>
     {
-        readonly IBus bus;
         static ILog Log = LogManager.GetLogger<MasterSaga>();
-
-        public MasterSaga(IBus bus)
-        {
-            this.bus = bus;
-        }
 
         protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MasterSagaData> mapper)
         {
@@ -28,7 +22,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
             mapper.ConfigureMapping<ChildFinished>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
         }
 
-        public void Handle(StartMasterAlpha message)
+        public Task Handle(StartMasterAlpha message, IMessageHandlerContext context)
         {
             Data.Identifier = message.Identifier;
             Data.AlphaReceived = true;
@@ -40,10 +34,10 @@ namespace NServiceBus.SagaAudit.SmokeTest
                 Log.Info($"Master {Data.Identifier} started with Alpha.");
             }
 
-            CheckIfReadyToStart();
+            return CheckIfReadyToStart(context);
         }
 
-        public void Handle(StartMasterBeta message)
+        public Task Handle(StartMasterBeta message, IMessageHandlerContext context)
         {
             Data.Identifier = message.Identifier;
             Data.BetaReceived = true;
@@ -54,23 +48,26 @@ namespace NServiceBus.SagaAudit.SmokeTest
                 Log.Info($"Master {Data.Identifier} started with Beta.");
             }
 
-            CheckIfReadyToStart();
+            return CheckIfReadyToStart(context);
         }
 
-        void CheckIfReadyToStart()
+        Task CheckIfReadyToStart(IMessageHandlerContext context)
         {
             if (Data.AlphaReceived && Data.BetaReceived)
             {
-                bus.SendLocal(new StartChild
-                {
-                    Identifier = Data.Identifier,
-                    WorkRequired = Data.WorkRequired
-                });
-                RequestTimeout<MasterTimedOut>(DateTime.UtcNow.AddSeconds(2));
+                return Task.WhenAll(
+                    context.SendLocal(new StartChild
+                    {
+                        Identifier = Data.Identifier,
+                        WorkRequired = Data.WorkRequired
+                    }),
+                    RequestTimeout<MasterTimedOut>(context, DateTime.UtcNow.AddSeconds(2))
+                    );
             }
+            return Task.FromResult(0);
         }
 
-        public void Timeout(MasterTimedOut state)
+        public Task Timeout(MasterTimedOut state, IMessageHandlerContext context)
         {
             var checkTime = Data.LastWorkRequestedAt ?? Data.StartedAt;
 
@@ -79,21 +76,23 @@ namespace NServiceBus.SagaAudit.SmokeTest
                 Log.Warn($"Master Saga {Data.Identifier} Timed Out");
             }
 
-            RequestTimeout<MasterTimedOut>(DateTime.UtcNow.AddSeconds(10));
+            return RequestTimeout<MasterTimedOut>(context, DateTime.UtcNow.AddSeconds(10));
         }
 
-        public void Handle(WorkRequestedAt message)
+        public Task Handle(WorkRequestedAt message, IMessageHandlerContext context)
         {
             Data.LastWorkRequestedAt = message.RequestedAt;
+
+            return Task.FromResult(0);
         }
 
-        public void Handle(ChildFinished message)
+        public Task Handle(ChildFinished message, IMessageHandlerContext context)
         {
             MarkAsComplete();
 
             Log.Info($"Master {Data.Identifier} completed.");
 
-            bus.Publish(new MasterFinished
+            return context.Publish(new MasterFinished
             {
                 Identifier = Data.Identifier,
                 FinishedAt = DateTime.UtcNow

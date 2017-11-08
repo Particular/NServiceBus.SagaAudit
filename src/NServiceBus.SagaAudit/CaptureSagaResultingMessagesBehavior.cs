@@ -1,59 +1,70 @@
 ﻿namespace NServiceBus.SagaAudit
 {
     using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using DelayedDelivery;
+    using DeliveryConstraints;
     using Pipeline;
-    using Pipeline.Contexts;
+    using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using Unicast;
 
-    class CaptureSagaResultingMessagesBehavior : IBehavior<OutgoingContext>
+    class CaptureSagaResultingMessagesBehavior : Behavior<IOutgoingLogicalMessageContext>
     {
-        SagaUpdatedMessage sagaUpdatedMessage;
-
-        public void Invoke(OutgoingContext context, Action next)
+        public override Task Invoke(IOutgoingLogicalMessageContext context, Func<Task> next)
         {
             AppendMessageToState(context);
-            next();
+            return next();
         }
 
-        void AppendMessageToState(OutgoingContext context)
+        void AppendMessageToState(IOutgoingLogicalMessageContext context)
         {
-            if (!context.TryGet(out sagaUpdatedMessage))
-            {
-                return;
-            }
-            var logicalMessage = context.OutgoingLogicalMessage;
+            var logicalMessage = context.Message;
             if (logicalMessage == null)
             {
                 //this can happen on control messages
                 return;
             }
 
-            var sagaResultingMessage = new SagaChangeOutput
-            {
-                ResultingMessageId = context.OutgoingMessage.Id,
-                TimeSent = DateTimeExtensions.ToUtcDateTime(context.OutgoingMessage.Headers[Headers.TimeSent]),
-                MessageType = logicalMessage.MessageType.ToString(),
-                Intent = context.OutgoingMessage.Headers[Headers.MessageIntent]
-            };
+            SagaUpdatedMessage sagaUpdatedMessage;
 
-            if (context.DeliveryOptions is SendOptions sendOptions)
+            if (!context.Extensions.TryGet(out sagaUpdatedMessage))
             {
-                sagaResultingMessage.DeliveryDelay = sendOptions.DelayDeliveryWith;
-                sagaResultingMessage.DeliveryAt = sendOptions.DeliverAt;
-                sagaResultingMessage.Destination = sendOptions.Destination.ToString();
+                return;
             }
 
+            TimeSpan? deliveryDelay = null;
+            DelayDeliveryWith delayDeliveryWith;
+            if (context.Extensions.TryGetDeliveryConstraint(out delayDeliveryWith))
+            {
+                deliveryDelay = delayDeliveryWith.Delay;
+            }
+
+            DateTime? doNotDeliverBefore = null;
+            DoNotDeliverBefore notDeliverBefore;
+            if (context.Extensions.TryGetDeliveryConstraint(out notDeliverBefore))
+            {
+                doNotDeliverBefore = notDeliverBefore.At;
+            }
+
+            var sagaResultingMessage = new SagaChangeOutput
+            {
+                ResultingMessageId = context.MessageId,
+                TimeSent = DateTime.UtcNow,
+                MessageType = logicalMessage.MessageType.ToString(),
+                DeliveryDelay = deliveryDelay,
+                DeliveryAt = doNotDeliverBefore,
+                Destination = GetDestinationForUnicastMessages(context),
+                Intent = context.Headers[Headers.MessageIntent]
+            };
             sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
         }
 
-        public class CaptureSagaResultingMessageRegistration : RegisterStep
+        static string GetDestinationForUnicastMessages(IOutgoingLogicalMessageContext context)
         {
-            public CaptureSagaResultingMessageRegistration()
-                : base("ReportSagaStateChanges", typeof(CaptureSagaResultingMessagesBehavior), "Reports the saga state changes to ServiceControl")
-            {
-                InsertBefore(WellKnownStep.DispatchMessageToTransport);
-            }
+            var sendAddressTags = context.RoutingStrategies.OfType<UnicastRoutingStrategy>()
+                .Select(urs => urs.Apply(context.Headers)).Cast<UnicastAddressTag>().ToList();
+            return sendAddressTags.Count != 1 ? null : sendAddressTags.First().Destination;
         }
     }
 }

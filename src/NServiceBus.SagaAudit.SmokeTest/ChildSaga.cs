@@ -1,21 +1,15 @@
 namespace NServiceBus.SagaAudit.SmokeTest
 {
     using System;
+    using System.Threading.Tasks;
     using Logging;
     using NServiceBus;
-    using Saga;
 
     class ChildSaga : Saga<ChildSagaData>,
         IAmStartedByMessages<StartChild>,
         IHandleMessages<SomeWorkIsComplete>
     {
-        readonly IBus bus;
         static ILog Log = LogManager.GetLogger<ChildSaga>();
-
-        public ChildSaga(IBus bus)
-        {
-            this.bus = bus;
-        }
 
         protected override void ConfigureHowToFindSaga(SagaPropertyMapper<ChildSagaData> mapper)
         {
@@ -24,7 +18,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
         }
 
 
-        public void Handle(StartChild message)
+        public Task Handle(StartChild message, IMessageHandlerContext context)
         {
             Data.Identifier = message.Identifier;
             Data.WhenStarted = DateTime.UtcNow;
@@ -32,45 +26,46 @@ namespace NServiceBus.SagaAudit.SmokeTest
 
             Log.InfoFormat($"Child {Data.Identifier} started");
 
-            RequestWork();
+            return RequestWork(context);
         }
 
-        public void Handle(SomeWorkIsComplete message)
+        public Task Handle(SomeWorkIsComplete message, IMessageHandlerContext context)
         {
             Data.WorkCompleted++;
-            CheckIfCompleted();
+            return CheckIfCompleted(context);
         }
 
-        void RequestWork()
+        Task RequestWork(IMessageHandlerContext context)
         {
             Log.InfoFormat($"Child {Data.Identifier} requesting work");
 
-            bus.SendLocal(new DoSomeWork
+            return Task.WhenAll(new []
             {
-                Identifier = Data.Identifier
-            });
-
-            bus.Reply(new WorkRequestedAt
-            {
-                Identifier = Data.Identifier,
-                RequestedAt = DateTime.UtcNow
+                context.SendLocal(new DoSomeWork
+                {
+                    Identifier = Data.Identifier
+                }),
+                context.Reply(new WorkRequestedAt
+                {
+                    Identifier = Data.Identifier,
+                    RequestedAt = DateTime.UtcNow
+                })
             });
         }
 
-        void CheckIfCompleted()
+        Task CheckIfCompleted(IMessageHandlerContext context)
         {
             if (Data.WorkCompleted < Data.WorkRequired)
             {
                 Log.InfoFormat($"Child {Data.Identifier} work not completed {Data.WorkCompleted}/{Data.WorkRequired}");
-                RequestWork();
-                return;
+                return RequestWork(context);
             }
 
             MarkAsComplete();
 
             Log.InfoFormat($"Child {Data.Identifier} completed");
 
-            bus.Publish(new ChildFinished
+            return context.Publish(new ChildFinished
             {
                 Identifier = Data.Identifier
             });
