@@ -23,6 +23,7 @@
             var backend = new ServiceControlBackend(serviceControlQueue, context.Settings.LocalAddress());
             context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), backend, customSagaEntitySerialization));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
+            context.Pipeline.Register("AuditInvokedSaga", new AuditInvokedSagaBehavior(), "Adds saga information to audit messages");
 
             context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.Build<IDispatchMessages>()));
         }

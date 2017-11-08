@@ -34,15 +34,13 @@
             }
 
             TimeSpan? deliveryDelay = null;
-            DelayDeliveryWith delayDeliveryWith;
-            if (context.Extensions.TryGetDeliveryConstraint(out delayDeliveryWith))
+            if (context.Extensions.TryGetDeliveryConstraint(out DelayDeliveryWith delayDeliveryWith))
             {
                 deliveryDelay = delayDeliveryWith.Delay;
             }
 
             DateTime? doNotDeliverBefore = null;
-            DoNotDeliverBefore notDeliverBefore;
-            if (context.Extensions.TryGetDeliveryConstraint(out notDeliverBefore))
+            if (context.Extensions.TryGetDeliveryConstraint(out DoNotDeliverBefore notDeliverBefore))
             {
                 doNotDeliverBefore = notDeliverBefore.At;
             }
