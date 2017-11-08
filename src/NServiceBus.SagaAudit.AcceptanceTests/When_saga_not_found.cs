@@ -33,10 +33,7 @@
             {
                 IncludeType<SagaUpdatedMessage>();
 
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    c.UseSerialization<JsonSerializer>();
-                });
+                EndpointSetup<DefaultServer>();
             }
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>

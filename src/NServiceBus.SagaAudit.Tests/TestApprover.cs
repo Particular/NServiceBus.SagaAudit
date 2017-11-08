@@ -1,32 +1,34 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
-    using System.IO;
-    using ApprovalTests;
-    using ApprovalTests.Namers;
-    using NUnit.Framework;
-
     static class TestApprover
     {
+#if NET452
         public static void Verify(string text)
         {
-            var writer = new ApprovalTextWriter(text);
+            var writer = new ApprovalTests.ApprovalTextWriter(text);
             var namer = new ApprovalNamer();
-            Approvals.Verify(writer, namer, Approvals.GetReporter());
+            ApprovalTests.Approvals.Verify(writer, namer, ApprovalTests.Approvals.GetReporter());
         }
 
-        class ApprovalNamer : UnitTestFrameworkNamer
+        class ApprovalNamer : ApprovalTests.Namers.UnitTestFrameworkNamer
         {
             public ApprovalNamer()
             {
-                var assemblyPath = TestContext.CurrentContext.TestDirectory;
-                var assemblyDir = Path.GetDirectoryName(assemblyPath);
+                var assemblyPath = GetType().Assembly.Location;
+                var assemblyDir = System.IO.Path.GetDirectoryName(assemblyPath);
 
-                sourcePath = Path.Combine(assemblyDir, "..", "..", "ApprovalFiles");
+                sourcePath = System.IO.Path.Combine(assemblyDir, "..", "..", "..", "ApprovalFiles");
             }
 
             public override string SourcePath => sourcePath;
 
             readonly string sourcePath;
         }
+#else
+        public static void Verify(string text)
+        {
+            NUnit.Framework.Assert.Inconclusive("ApprovalTests only work in full .NET");
+        }
+#endif
     }
 }

@@ -28,7 +28,7 @@
                 c.RegisterSingleton(masters);
                 c.RegisterSingleton(cancellationSource);
             });
-            busConfiguration.UseSerialization<JsonSerializer>();
+            busConfiguration.UseSerialization<NewtonsoftSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<InMemoryPersistence>();
             busConfiguration.SendFailedMessagesTo("error");
