@@ -37,6 +37,7 @@
 
             var routing = busConfiguration.UseTransport<MsmqTransport>().Routing();
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
+            routing.RegisterPublisher(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 
             var endpoint = await Endpoint.Start(busConfiguration);
 
