@@ -1,5 +1,8 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
+    using System.IO;
+    using NUnit.Framework;
+
     static class TestApprover
     {
 #if NET452
@@ -14,10 +17,10 @@
         {
             public ApprovalNamer()
             {
-                var assemblyPath = GetType().Assembly.Location;
-                var assemblyDir = System.IO.Path.GetDirectoryName(assemblyPath);
+                var assemblyPath = TestContext.CurrentContext.TestDirectory;
+                var assemblyDir = Path.GetDirectoryName(assemblyPath);
 
-                sourcePath = System.IO.Path.Combine(assemblyDir, "..", "..", "..", "ApprovalFiles");
+                sourcePath = Path.Combine(assemblyDir, "..", "..", "ApprovalFiles");
             }
 
             public override string SourcePath => sourcePath;
@@ -27,7 +30,7 @@
 #else
         public static void Verify(string text)
         {
-            NUnit.Framework.Assert.Inconclusive("ApprovalTests only work in full .NET");
+            Assert.Inconclusive("ApprovalTests only work in full .NET");
         }
 #endif
     }
