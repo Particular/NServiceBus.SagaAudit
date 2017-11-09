@@ -1,7 +1,7 @@
 ﻿namespace NServiceBus.SagaAudit.SmokeTest
 {
     using System;
-    using Saga;
+    using NServiceBus;
 
     class ChildSagaData : ContainSagaData
     {

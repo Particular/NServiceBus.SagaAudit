@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Logging;
     using NServiceBus;
 
@@ -19,7 +20,7 @@
             this.tokenSource = tokenSource;
         }
 
-        public void Handle(MasterFinished message)
+        public Task Handle(MasterFinished message, IMessageHandlerContext context)
         {
             Log.Info($"Master {message.Identifier} finished, checking if program can exit.");
 
@@ -30,6 +31,8 @@
                 Log.Info("Program cancelling");
                 tokenSource.Cancel();
             }
+
+            return Task.FromResult(0);
         }
     }
 }

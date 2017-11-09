@@ -2,35 +2,26 @@
 {
     using System;
     using System.Linq;
-    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using Features;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using Pipeline;
-    using Pipeline.Contexts;
-    using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using Unicast.Subscriptions;
 
     class When_a_saga_results_in_messages
     {
         [Test]
-        public void Those_messages_should_be_captured()
+        public async Task Those_messages_should_be_captured()
         {
             var contextId = Guid.NewGuid();
-            var context = Scenario.Define(new Context()
-                {
-                    Id = contextId
-                })
+            var context = await Scenario.Define<Context>(ctx => ctx.Id = contextId)
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<Endpoint>(b => b.Given(session => session.Subscribe<TestEvent>()).When(ctx => ctx.Subscribed, session =>
+                .WithEndpoint<Endpoint>(b => b.When(session => session.SendLocal(new StartSaga
                 {
-                    session.SendLocal(new StartSaga
-                    {
-                        DataId = contextId
-                    });
-                }))
+                    DataId = contextId
+                })))
                 .Done(c => c.WasStarted && c.CommandHandled && c.DelayedByCommandHandled && c.DelayAtCommandHandled && c.EventHandled && c.SagaUpdateMessageReceived)
                 .Run();
 
@@ -40,8 +31,8 @@
             Assert.IsNotNull(command, "Command messages not single or not found");
             Assert.AreEqual(MessageIntentEnum.Send.ToString(), command.Intent, "Command intent mismatch");
             Assert.AreEqual(context.MessageId, command.ResultingMessageId, "MessageId mismatch");
-            Assert.AreEqual(context.TimeSent, command.TimeSent, "TimeSent mismatch");
-            Assert.IsTrue(Regex.IsMatch(command.Destination, $"{AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint))}@.*"), "Destination mismatch");
+            Assert.AreEqual(context.TimeSent.Round(TimeSpan.FromSeconds(1)), command.TimeSent.Round(TimeSpan.FromSeconds(1)), "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
+            Assert.AreEqual(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)), command.Destination, "Destination mismatch");
             Assert.IsNull(command.DeliveryDelay, "Command DeliveryDelay");
             Assert.IsNull(command.DeliveryAt, "Command DeliveryAt");
 
@@ -73,7 +64,6 @@
             public string MessageId { get; set; }
             public bool DelayedByCommandHandled { get; set; }
             public bool DelayAtCommandHandled { get; set; }
-            public bool Subscribed { get; set; }
         }
 
         class Endpoint : EndpointConfigurationBuilder
@@ -85,30 +75,37 @@
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.EnableFeature<TimeoutManager>();
                     config.AuditSagaStateChanges(receiverEndpoint);
-                    config.OnEndpointSubscribed<Context>((s, context) =>
-                    {
-                        context.Subscribed = true;
-                    });
-                    config.DisableFeature<AutoSubscribe>();
-                })
-                .AddMapping<TestEvent>(typeof(Endpoint))
-                .AddMapping<TestCommand>(typeof(Endpoint));
+                    var routing = config.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(TestCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
+                    routing.RouteToEndpoint(typeof(TestDelayAtCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
+                    routing.RouteToEndpoint(typeof(TestDelayedByCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
+                }, metadata =>
+                {
+                    metadata.RegisterPublisherFor<TestEvent>(typeof(Endpoint));
+                });
             }
 
             public class MySaga : Saga<MySaga.MySagaData>,
-                                        IAmStartedByMessages<StartSaga>
+                IAmStartedByMessages<StartSaga>
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(StartSaga message)
+                public async Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
                     TestContext.WasStarted = true;
                     Data.DataId = message.DataId;
 
-                    Bus.Send(new TestCommand());
-                    Bus.Defer(TimeSpan.FromSeconds(2), new TestDelayedByCommand());
-                    Bus.Defer(DateTime.UtcNow.AddSeconds(2), new TestDelayAtCommand());
-                    Bus.Publish(new TestEvent());
+                    await context.Send(new TestCommand());
+
+                    var delayedBySendOptions = new SendOptions();
+                    delayedBySendOptions.DelayDeliveryWith(TimeSpan.FromSeconds(2));
+                    await context.Send(new TestDelayedByCommand(), delayedBySendOptions);
+
+                    var delayAtSendOptions = new SendOptions();
+                    delayAtSendOptions.DoNotDeliverBefore(DateTimeOffset.UtcNow.AddSeconds(2));
+                    await context.Send(new TestDelayAtCommand(), delayAtSendOptions);
+
+                    await context.Publish(new TestEvent());
 
                     MarkAsComplete();
                 }
@@ -127,30 +124,35 @@
             public class TestCommandHandler : IHandleMessages<TestCommand>
             {
                 public Context TestContext { get; set; }
-                public IBus Bus { get; set; }
-                public void Handle(TestCommand message)
+
+                public Task Handle(TestCommand message, IMessageHandlerContext context)
                 {
                     TestContext.CommandHandled = true;
-                    TestContext.TimeSent = DateTimeExtensions.ToUtcDateTime(Bus.CurrentMessageContext.Headers[Headers.TimeSent]);
-                    TestContext.MessageId = Bus.CurrentMessageContext.Id;
+                    TestContext.TimeSent = DateTimeExtensions.ToUtcDateTime(context.MessageHeaders[Headers.TimeSent]);
+                    TestContext.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
 
             public class TestDelayedByCommandHandler : IHandleMessages<TestDelayedByCommand>
             {
                 public Context TestContext { get; set; }
-                public void Handle(TestDelayedByCommand message)
+
+                public Task Handle(TestDelayedByCommand message, IMessageHandlerContext context)
                 {
                     TestContext.DelayedByCommandHandled = true;
+                    return Task.FromResult(0);
                 }
             }
 
             public class TestDelayAtCommandHandler : IHandleMessages<TestDelayAtCommand>
             {
                 public Context TestContext { get; set; }
-                public void Handle(TestDelayAtCommand message)
+
+                public Task Handle(TestDelayAtCommand message, IMessageHandlerContext context)
                 {
                     TestContext.DelayAtCommandHandled = true;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -158,9 +160,10 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(TestEvent message)
+                public Task Handle(TestEvent message, IMessageHandlerContext context)
                 {
                     TestContext.EventHandled = true;
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -178,10 +181,11 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(SagaUpdatedMessage message)
+                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     TestContext.SagaUpdateMessageReceived = true;
                     TestContext.SagaUpdatedMessage = message;
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -192,69 +196,43 @@
         }
 
         public class TestCommand : ICommand
-        { }
+        {
+        }
 
         public class TestDelayedByCommand : ICommand
-        { }
+        {
+        }
 
         public class TestDelayAtCommand : ICommand
-        { }
+        {
+        }
 
         public class TestEvent : IEvent
-        { }
-    }
-
-    static class SubscriptionBehaviorExtensions
-    {
-        public static void OnEndpointSubscribed<TContext>(this BusConfiguration b, Action<SubscriptionEventArgs, TContext> action) where TContext : ScenarioContext
         {
-            b.Pipeline.Register<SubscriptionBehavior<TContext>.Registration>();
-
-            b.RegisterComponents(c => c.ConfigureComponent(builder =>
-            {
-                var context = builder.Build<TContext>();
-                return new SubscriptionBehavior<TContext>(action, context);
-            }, DependencyLifecycle.InstancePerCall));
         }
     }
 
-    class SubscriptionBehavior<TContext> : IBehavior<IncomingContext> where TContext : ScenarioContext
+    //https://stackoverflow.com/a/4108889/1322687
+    static class DateTimeRoundingExtensions
     {
-        readonly Action<SubscriptionEventArgs, TContext> action;
-        readonly TContext scenarioContext;
-
-        public SubscriptionBehavior(Action<SubscriptionEventArgs, TContext> action, TContext scenarioContext)
+        static TimeSpan Round(this TimeSpan time, TimeSpan roundingInterval, MidpointRounding roundingType)
         {
-            this.action = action;
-            this.scenarioContext = scenarioContext;
+            return new TimeSpan(
+                Convert.ToInt64(Math.Round(
+                    time.Ticks / (decimal)roundingInterval.Ticks,
+                    roundingType
+                )) * roundingInterval.Ticks
+            );
         }
 
-        public void Invoke(IncomingContext context, Action next)
+        static TimeSpan Round(this TimeSpan time, TimeSpan roundingInterval)
         {
-            next();
-            var subscriptionMessageType = GetSubscriptionMessageTypeFrom(context.PhysicalMessage);
-            if (subscriptionMessageType != null)
-            {
-                action(new SubscriptionEventArgs
-                {
-                    MessageType = subscriptionMessageType,
-                    SubscriberReturnAddress = context.PhysicalMessage.ReplyToAddress
-                }, scenarioContext);
-            }
+            return Round(time, roundingInterval, MidpointRounding.ToEven);
         }
 
-        static string GetSubscriptionMessageTypeFrom(TransportMessage msg)
+        public static DateTime Round(this DateTime datetime, TimeSpan roundingInterval)
         {
-            return (from header in msg.Headers where header.Key == Headers.SubscriptionMessageType select header.Value).FirstOrDefault();
-        }
-
-        internal class Registration : RegisterStep
-        {
-            public Registration()
-                : base("SubscriptionBehavior", typeof(SubscriptionBehavior<TContext>), "So we can get subscription events")
-            {
-                InsertBefore(WellKnownStep.CreateChildContainer);
-            }
+            return new DateTime((datetime - DateTime.MinValue).Round(roundingInterval).Ticks);
         }
     }
 }

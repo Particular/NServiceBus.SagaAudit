@@ -3,29 +3,31 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using Features;
     using NServiceBus;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_saga_changes_state : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_send_result_to_service_control()
+        public async Task Should_send_result_to_service_control()
         {
             var contextId = Guid.NewGuid();
-            var context = Scenario.Define(new Context(){Id = contextId})
+            var context = await Scenario.Define<Context>(c => { c.Id = contextId; })
                 .WithEndpoint<FakeServiceControl>()
                 .WithEndpoint<Sender>(b => b.When(session =>
                 {
-                    session.SendLocal(new StartSaga
+                    var sendOptions = new SendOptions();
+                    sendOptions.RouteToThisEndpoint();
+                    return session.Send(new StartSaga
                     {
                         DataId = contextId
-                    });
+                    }, sendOptions);
                 }))
                 .Done(c => c.MessagesReceived.Count == 2)
                 .Run();
@@ -96,21 +98,22 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(StartSaga message)
+                public Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
                     TestContext.WasStarted = true;
                     Data.DataId = message.DataId;
                     TestContext.SagaId = Data.Id;
                     Console.WriteLine("Handled");
 
-                    RequestTimeout(TimeSpan.FromMilliseconds(1), new TimeHasPassed());
+                    return RequestTimeout(context, TimeSpan.FromMilliseconds(1), new TimeHasPassed());
                 }
 
-                public void Timeout(TimeHasPassed state)
+                public Task Timeout(TimeHasPassed state, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
 
                     TestContext.TimeoutReceived = true;
+                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -135,16 +138,20 @@
             {
                 IncludeType<SagaUpdatedMessage>();
 
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.UseSerialization<JsonSerializer>();
+                });
             }
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(SagaUpdatedMessage message)
+                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     TestContext.MessagesReceived.Add(message);
+                    return Task.FromResult(0);
                 }
             }
         }

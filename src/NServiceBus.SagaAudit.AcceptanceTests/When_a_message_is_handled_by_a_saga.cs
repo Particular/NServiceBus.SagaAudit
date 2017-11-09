@@ -2,26 +2,27 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using Saga;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_a_message_is_handled_by_a_saga : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_populate_InvokedSagas_header_for_single_saga_audits()
+        public async Task Should_populate_InvokedSagas_header_for_single_saga_audits()
         {
-            var context = Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<EndpointWithASaga>(b => b.When(bus =>
-                    bus.SendLocal(new MessageToBeAudited
+                .WithEndpoint<EndpointWithASaga>(b => b.When((messageSession, ctx) =>
+                    messageSession.SendLocal(new MessageToBeAudited
                     {
-                        Id = Guid.NewGuid()
-                    })))
+                        Id = ctx.TestRunId
+                    })
+                ))
                 .Done(c => c.MessageAudited)
                 .Run();
 
@@ -30,14 +31,14 @@
         }
 
         [Test]
-        public void Should_populate_InvokedSagas_header_for_multiple_saga_audits()
+        public async Task Should_populate_InvokedSagas_header_for_multiple_saga_audits()
         {
-            var context = Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<EndpointWithASaga>(b => b.When(bus =>
-                    bus.SendLocal(new MessageToBeAuditedByMultiple
+                .WithEndpoint<EndpointWithASaga>(b => b.When((messageSession, ctx) =>
+                    messageSession.SendLocal(new MessageToBeAuditedByMultiple
                     {
-                        Id = Guid.NewGuid()
+                        Id = ctx.TestRunId
                     })
                 ))
                 .Done(c => c.MessageAudited)
@@ -61,7 +62,7 @@
         class Context : ScenarioContext
         {
             public bool MessageAudited { get; set; }
-            public IDictionary<string, string> Headers { get; set; }
+            public IReadOnlyDictionary<string, string> Headers { get; set; }
             public Guid SagaId { get; set; }
             public Guid AlternativeSagaId { get; set; }
         }
@@ -73,8 +74,10 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+
                     c.AuditSagaStateChanges(receiverEndpoint);
-                }).AuditTo<FakeServiceControl>();
+                    c.AuditProcessedMessagesTo(receiverEndpoint);
+                });
             }
 
             public class TheEndpointsSaga : Saga<TheEndpointsSagaData>, IAmStartedByMessages<MessageToBeAudited>, IAmStartedByMessages<MessageToBeAuditedByMultiple>
@@ -88,16 +91,18 @@
                 }
 
 
-                public void Handle(MessageToBeAudited message)
+                public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.SagaId = Data.Id;
+                    return Task.FromResult(0);
                 }
 
-                public void Handle(MessageToBeAuditedByMultiple message)
+                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.SagaId = Data.Id;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -110,10 +115,11 @@
                     mapper.ConfigureMapping<MessageToBeAuditedByMultiple>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
                 }
 
-                public void Handle(MessageToBeAuditedByMultiple message)
+                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
                     TestContext.AlternativeSagaId = Data.Id;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -133,31 +139,37 @@
             public FakeServiceControl()
             {
                 IncludeType<SagaUpdatedMessage>();
-                EndpointSetup<DefaultServer>();
+
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.UseSerialization<JsonSerializer>();
+                });
             }
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public void Handle(SagaUpdatedMessage message)
+                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
             public class MessageToBeAuditedHandler : IHandleMessages<MessageToBeAudited>, IHandleMessages<MessageToBeAuditedByMultiple>
             {
                 public Context TestContext { get; set; }
-                public IBus Bus { get; set; }
 
-                public void Handle(MessageToBeAudited message)
+                public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
                     TestContext.MessageAudited = true;
-                    TestContext.Headers = Bus.CurrentMessageContext.Headers;
+                    TestContext.Headers = context.MessageHeaders;
+                    return Task.FromResult(0);
                 }
 
-                public void Handle(MessageToBeAuditedByMultiple message)
+                public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     TestContext.MessageAudited = true;
-                    TestContext.Headers = Bus.CurrentMessageContext.Headers;
+                    TestContext.Headers = context.MessageHeaders;
+                    return Task.FromResult(0);
                 }
             }
         }

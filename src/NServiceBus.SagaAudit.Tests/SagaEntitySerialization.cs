@@ -6,6 +6,7 @@
     using ApprovalUtilities.Utilities;
     using NUnit.Framework;
     using ServiceInsight.Saga;
+    using Settings;
     using SimpleJson;
 
     [TestFixture]
@@ -96,7 +97,8 @@
                 NullableTimeProperty = new TimeSpan(5, 6, 7, 8)
             };
             var sagaDataJson = SimpleJson.SerializeObject(new[] { entity }, new SagaEntitySerializationStrategy());
-            var legacySagaDataJson = ServiceControl.Plugins.Nsb5.SagaAudit.Serializer.Serialize(entity);
+            var v6Serializer = new ServiceControl.Plugin.SagaAudit.SagaAuditSerializer(new SettingsHolder());
+            var legacySagaDataJson = v6Serializer.Serialize(entity);
 
             var sagaDataProperties = JsonPropertiesHelper.ProcessArray(sagaDataJson);
             var legacySagaDataProperties = JsonPropertiesHelper.ProcessArray(legacySagaDataJson);
@@ -154,26 +156,36 @@ namespace ServiceInsight.Saga
     }
 }
 
-namespace ServiceControl.Plugins.Nsb5.SagaAudit
+namespace ServiceControl.Plugin.SagaAudit
 {
     using System.IO;
-    using NServiceBus.Serializers.Binary;
-    using NServiceBus.Serializers.Json;
+    using NServiceBus;
+    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
+    using NServiceBus.Serialization;
+    using NServiceBus.Settings;
 
-    class Serializer
+    class SagaAuditSerializer
     {
-        static JsonMessageSerializer serializer;
+        readonly IMessageSerializer serializer;
 
-        static Serializer()
+        public SagaAuditSerializer(ReadOnlySettings settings)
         {
-            serializer = new JsonMessageSerializer(new SimpleMessageMapper());
+            var definition = new JsonSerializer();
+
+            var factory = definition.Configure(settings);
+
+            serializer = factory(new MessageMapper());
         }
 
-        public static string Serialize(object sagaEntity)
+        public string Serialize<T>(T entity)
         {
             using (var memoryStream = new MemoryStream())
             {
-                serializer.Serialize(new[] { sagaEntity }, memoryStream);
+                serializer.Serialize(new[]
+                {
+                    entity
+                }, memoryStream);
+
                 memoryStream.Position = 0;
                 using (var streamReader = new StreamReader(memoryStream))
                 {

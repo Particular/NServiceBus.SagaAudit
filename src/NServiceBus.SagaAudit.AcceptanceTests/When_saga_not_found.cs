@@ -1,23 +1,24 @@
 ﻿namespace NServiceBus.SagaAudit.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using Saga;
+    using Sagas;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     public class When_saga_not_found : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_skip_auditing()
+        public async Task Should_skip_auditing()
         {
-            var context =  Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<FakeServiceControl>()
-                .WithEndpoint<EndpointWithASaga>(b => b.When(bus =>
-                        bus.SendLocal(new MessageToBeAudited())
+                .WithEndpoint<EndpointWithASaga>(b => b.When((messageSession, ctx) =>
+                        messageSession.SendLocal(new MessageToBeAudited())
                 ))
                 .Done(c => c.Done)
                 .Run();
@@ -32,16 +33,20 @@
             {
                 IncludeType<SagaUpdatedMessage>();
 
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.UseSerialization<JsonSerializer>();
+                });
             }
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(SagaUpdatedMessage message)
+                public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     TestContext.Received = true;
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -63,19 +68,21 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+
                     c.AuditSagaStateChanges(receiverEndpoint);
                 });
             }
 
             public class NotStartableSaga : Saga<NotStartableSaga.MyData>, IAmStartedByMessages<NotSent>, IHandleMessages<MessageToBeAudited>
             {
-                public void Handle(NotSent message)
+                public Task Handle(NotSent message, IMessageHandlerContext context)
                 {
                     throw new NotImplementedException();
                 }
 
-                public void Handle(MessageToBeAudited message)
+                public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
 
                 public class MyData : ContainSagaData
@@ -94,13 +101,14 @@
             {
                 public Context TestContext { get; set; }
 
-                public void Handle(object message)
+                public Task Handle(object message, IMessageProcessingContext context)
                 {
                     TestContext.Done = true;
+                    return Task.FromResult(0);
                 }
             }
         }
-
+        
         class Context : ScenarioContext
         {
             public bool Done { get; set; }
