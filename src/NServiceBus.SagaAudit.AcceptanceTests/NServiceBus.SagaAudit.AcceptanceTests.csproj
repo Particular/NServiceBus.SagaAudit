@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeInitiator.cs" Link="SagaChangeInitiator.cs" />
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeOutput.cs" Link="SagaChangeOutput.cs" />
+    <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaUpdatedMessage.cs" Link="SagaUpdatedMessage.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="5.2.24" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,157 @@
+﻿namespace NServiceBus.SagaAudit.AcceptanceTests
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using Features;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTests;
+    using NUnit.Framework;
+    using Saga;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
+
+    public class When_saga_changes_state : NServiceBusAcceptanceTest
+    {
+        [Test]
+        public void Should_send_result_to_service_control()
+        {
+            var contextId = Guid.NewGuid();
+            var context = Scenario.Define(new Context(){Id = contextId})
+                .WithEndpoint<FakeServiceControl>()
+                .WithEndpoint<Sender>(b => b.When(session =>
+                {
+                    session.SendLocal(new StartSaga
+                    {
+                        DataId = contextId
+                    });
+                }))
+                .Done(c => c.MessagesReceived.Count == 2)
+                .Run();
+
+            var firstSagaChange = context.MessagesReceived.FirstOrDefault(msg => msg?.Initiator?.MessageType == typeof(StartSaga).FullName);
+            var secondSagaChange = context.MessagesReceived.FirstOrDefault(msg => msg?.Initiator?.IsSagaTimeoutMessage ?? false);
+
+            //Process Asserts
+            Assert.AreNotEqual(Guid.Empty, context.SagaId, "Saga was not started");
+            Assert.True(context.TimeoutReceived, "Saga Timeout was not received");
+            Assert.NotNull(firstSagaChange, "First Saga Change was not received");
+            Assert.NotNull(secondSagaChange, "Second Saga was not received");
+
+            //SagaUpdateMessage Asserts
+            Assert.IsNotNull(firstSagaChange.SagaState, "SagaState is not set");
+            Assert.IsNotEmpty(firstSagaChange.SagaState, "SagaState is not set");
+
+            Assert.IsTrue(context.MessagesReceived.All(m => m.SagaId != Guid.Empty), "Messages with empty SagaId received");
+            Assert.IsTrue(context.MessagesReceived.All(m => m.SagaId == context.SagaId), "Messages with incorrect SagaId received");
+
+            Assert.AreEqual(firstSagaChange.Endpoint, "SagaChangesState.Sender", "Endpoint name is not set or incorrect");
+            Assert.True(firstSagaChange.IsNew, "First message is not marked new");
+            Assert.False(secondSagaChange.IsNew, "Last message is marked new");
+            Assert.False(firstSagaChange.IsCompleted, "First message is marked completed");
+            Assert.True(secondSagaChange.IsCompleted, "Last Message is not marked completed");
+            Assert.Greater(firstSagaChange.StartTime, DateTime.MinValue, "StartTime is not set");
+            Assert.Greater(firstSagaChange.FinishTime, DateTime.MinValue, "FinishTime is not set");
+            Assert.AreEqual(firstSagaChange.SagaType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+Sender+MySaga", "SagaType is not set or incorrect");
+
+            //SagaUpdateMessage.Initiator Asserts
+            Assert.True(secondSagaChange.Initiator.IsSagaTimeoutMessage, "Last message initiator is not a timeout");
+            Assert.IsNotNull(firstSagaChange.Initiator, "Initiator has not been set");
+            Assert.IsNotNull(firstSagaChange.Initiator.InitiatingMessageId, "Initiator.InitiatingMessageId has not been set");
+            Assert.IsNotEmpty(firstSagaChange.Initiator.InitiatingMessageId, "Initiator.InitiatingMessageId has not been set");
+            Assert.IsNotNull(firstSagaChange.Initiator.OriginatingMachine, "Initiator.OriginatingMachine has not been set");
+            Assert.IsNotEmpty(firstSagaChange.Initiator.OriginatingMachine, "Initiator.OriginatingMachine has not been set");
+            Assert.IsNotNull(firstSagaChange.Initiator.OriginatingEndpoint, "Initiator.OriginatingEndpoint has not been set");
+            Assert.IsNotEmpty(firstSagaChange.Initiator.OriginatingEndpoint, "Initiator.OriginatingEndpoint has not been set");
+            Assert.AreEqual(firstSagaChange.Initiator.MessageType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+StartSaga", "First message initiator MessageType is incorrect");
+            Assert.IsNotNull(firstSagaChange.Initiator.TimeSent, "Initiator.TimeSent has not been set");
+        }
+
+        class Context : ScenarioContext
+        {
+            public Guid Id { get; set; }
+
+            internal List<SagaUpdatedMessage> MessagesReceived { get; } = new List<SagaUpdatedMessage>();
+            public bool WasStarted { get; set; }
+            public bool TimeoutReceived { get; set; }
+            public Guid SagaId { get; set; }
+        }
+
+        class Sender : EndpointConfigurationBuilder
+        {
+            public Sender()
+            {
+                EndpointSetup<DefaultServer>(config =>
+                {
+                    var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
+                    config.AuditSagaStateChanges(receiverEndpoint);
+                    config.EnableFeature<TimeoutManager>();
+                });
+            }
+
+            public class MySaga : Saga<MySaga.MySagaData>,
+                                        IAmStartedByMessages<StartSaga>,
+                                        IHandleTimeouts<MySaga.TimeHasPassed>
+            {
+                public Context TestContext { get; set; }
+
+                public void Handle(StartSaga message)
+                {
+                    TestContext.WasStarted = true;
+                    Data.DataId = message.DataId;
+                    TestContext.SagaId = Data.Id;
+                    Console.WriteLine("Handled");
+
+                    RequestTimeout(TimeSpan.FromMilliseconds(1), new TimeHasPassed());
+                }
+
+                public void Timeout(TimeHasPassed state)
+                {
+                    MarkAsComplete();
+
+                    TestContext.TimeoutReceived = true;
+                }
+
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
+                {
+                    mapper.ConfigureMapping<StartSaga>(m => m.DataId).ToSaga(s => s.DataId);
+                }
+
+                public class MySagaData : ContainSagaData
+                {
+                    public virtual Guid DataId { get; set; }
+                }
+
+                public class TimeHasPassed
+                {
+                }
+            }
+        }
+
+        class FakeServiceControl : EndpointConfigurationBuilder
+        {
+            public FakeServiceControl()
+            {
+                IncludeType<SagaUpdatedMessage>();
+
+                EndpointSetup<DefaultServer>();
+            }
+
+            public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
+            {
+                public Context TestContext { get; set; }
+
+                public void Handle(SagaUpdatedMessage message)
+                {
+                    TestContext.MessagesReceived.Add(message);
+                }
+            }
+        }
+
+        public class StartSaga : IMessage
+        {
+            public Guid DataId { get; set; }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+﻿namespace ServiceControl.EndpointPlugin.Messages.SagaState
+{
+    using System;
+    using System.Collections.Generic;
+    using NServiceBus;
+
+    class SagaUpdatedMessage:IMessage
+    {
+        public string SagaState { get; set; }
+        public Guid SagaId { get; set; }
+        public SagaChangeInitiator Initiator { get; set; }
+        public List<SagaChangeOutput> ResultingMessages { get; } = new List<SagaChangeOutput>();
+        public string Endpoint { get; set; }
+        public bool IsNew { get; set; }
+        public bool IsCompleted { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime FinishTime { get; set; }
+        public string SagaType { get; set; }
+    }
+}
