@@ -15,17 +15,7 @@
 
         class ApprovalNamer : ApprovalTests.Namers.UnitTestFrameworkNamer
         {
-            public ApprovalNamer()
-            {
-                var assemblyPath = TestContext.CurrentContext.TestDirectory;
-                var assemblyDir = Path.GetDirectoryName(assemblyPath);
-
-                sourcePath = Path.Combine(assemblyDir, "..", "..", "ApprovalFiles");
-            }
-
-            public override string SourcePath => sourcePath;
-
-            readonly string sourcePath;
+            public override string SourcePath { get; } = Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "ApprovalFiles");
         }
 #else
         public static void Verify(string text)
