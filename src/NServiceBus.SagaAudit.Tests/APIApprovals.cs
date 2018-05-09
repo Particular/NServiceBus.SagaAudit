@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using NServiceBus.Features;
 using NServiceBus.SagaAudit.Tests;
 using NUnit.Framework;
 using PublicApiGenerator;
@@ -14,20 +11,7 @@ public class APIApprovals
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void Approve()
     {
-        var combine = Path.Combine(TestContext.CurrentContext.TestDirectory, "NServiceBus.SagaAudit.dll");
-        var assembly = Assembly.LoadFile(combine);
-        var publicApi = Filter(ApiGenerator.GeneratePublicApi(assembly));
+        var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditFeature).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
         TestApprover.Verify(publicApi);
-    }
-
-    string Filter(string text)
-    {
-        return string.Join(Environment.NewLine, text.Split(new[]
-            {
-                Environment.NewLine
-            }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(l => !l.StartsWith("[assembly: ReleaseDateAttribute("))
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-        );
     }
 }

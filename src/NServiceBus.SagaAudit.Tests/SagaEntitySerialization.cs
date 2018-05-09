@@ -1,12 +1,10 @@
-﻿namespace NServiceBus.SagaAudit.Tests
+﻿#if NET452
+namespace NServiceBus.SagaAudit.Tests
 {
     using System;
-    using System.Linq;
     using System.Runtime.CompilerServices;
-    using ApprovalUtilities.Utilities;
     using NUnit.Framework;
     using ServiceInsight.Saga;
-    using Settings;
     using SimpleJson;
 
     [TestFixture]
@@ -59,7 +57,7 @@
 
             Assert.IsNotNull(jsonObj, "SimpleJson.DeserializeObject");
 
-            sagaDataProperties.ForEach(p =>
+            foreach (var p in sagaDataProperties)
             {
                 Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
 
@@ -80,35 +78,7 @@
                 }
 
                 Assert.AreEqual(expected, value, p.Key);
-            });
-        }
-
-        [Test]
-        public void Saga_entity_compatible_with_legacy_plugin()
-        {
-            var entity = new SagaEntity
-            {
-                IntProperty = 42,
-                DateProperty = new DateTime(2017, 10, 26, 13, 3, 13, DateTimeKind.Utc),
-                NullableDateProperty = new DateTime(2013, 10, 26, 13, 3, 13, DateTimeKind.Utc),
-                GuidProperty = Guid.Empty,
-                StringProperty = "String",
-                TimeProperty = new TimeSpan(1, 2, 3, 4),
-                NullableTimeProperty = new TimeSpan(5, 6, 7, 8)
-            };
-            var sagaDataJson = SimpleJson.SerializeObject(new[] { entity }, new SagaEntitySerializationStrategy());
-            var v6Serializer = new ServiceControl.Plugin.SagaAudit.SagaAuditSerializer(new SettingsHolder());
-            var legacySagaDataJson = v6Serializer.Serialize(entity);
-
-            var sagaDataProperties = JsonPropertiesHelper.ProcessArray(sagaDataJson);
-            var legacySagaDataProperties = JsonPropertiesHelper.ProcessArray(legacySagaDataJson);
-
-            sagaDataProperties.ForEach(p =>
-            {
-                var legacyProperty = legacySagaDataProperties.SingleOrDefault(lp => lp.Key == p.Key);
-                Assert.IsNotNull(legacyProperty, $"{p.Key} not found");
-                Assert.AreEqual(legacyProperty.Value, p.Value, p.Key);
-            });
+            }
         }
 
         public class SagaEntityWithNestedObject
@@ -156,42 +126,4 @@ namespace ServiceInsight.Saga
     }
 }
 
-namespace ServiceControl.Plugin.SagaAudit
-{
-    using System.IO;
-    using NServiceBus;
-    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
-    using NServiceBus.Serialization;
-    using NServiceBus.Settings;
-
-    class SagaAuditSerializer
-    {
-        readonly IMessageSerializer serializer;
-
-        public SagaAuditSerializer(ReadOnlySettings settings)
-        {
-            var definition = new JsonSerializer();
-
-            var factory = definition.Configure(settings);
-
-            serializer = factory(new MessageMapper());
-        }
-
-        public string Serialize<T>(T entity)
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                serializer.Serialize(new[]
-                {
-                    entity
-                }, memoryStream);
-
-                memoryStream.Position = 0;
-                using (var streamReader = new StreamReader(memoryStream))
-                {
-                    return streamReader.ReadToEnd();
-                }
-            }
-        }
-    }
-}
+#endif

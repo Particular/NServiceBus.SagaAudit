@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
-    using Config.ConfigurationSource;
     using Features;
 
     public class DefaultServer : IEndpointSetupTemplate
@@ -20,7 +19,7 @@
             this.typesToInclude = typesToInclude;
         }
 #pragma warning disable CS0618
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, IConfigurationSource configSource, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
 #pragma warning restore CS0618
         {
             var types = endpointConfiguration.GetTypesScopedByTestClass();
@@ -33,13 +32,12 @@
             configuration.EnableInstallers();
 
             configuration.DisableFeature<TimeoutManager>();
-            configuration.CustomConfigurationSource(configSource);
 
             var recoverability = configuration.Recoverability();
             recoverability.Delayed(delayed => delayed.NumberOfRetries(0));
             recoverability.Immediate(immediate => immediate.NumberOfRetries(0));
             configuration.SendFailedMessagesTo("error");
-            configuration.UseSerialization<JsonSerializer>();
+            configuration.UseSerialization<NewtonsoftSerializer>();
 
             await configuration.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
