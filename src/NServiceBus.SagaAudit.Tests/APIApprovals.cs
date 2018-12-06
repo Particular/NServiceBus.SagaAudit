@@ -1,17 +1,25 @@
-﻿using System.Runtime.CompilerServices;
-using NServiceBus.Features;
-using NServiceBus.SagaAudit.Tests;
+﻿using NServiceBus.Features;
 using NUnit.Framework;
+using Particular.Approvals;
 using PublicApiGenerator;
 
 [TestFixture]
 public class APIApprovals
 {
     [Test]
-    [MethodImpl(MethodImplOptions.NoInlining)]
     public void Approve()
     {
-        var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditFeature).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
-        TestApprover.Verify(publicApi);
+        var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditFeature).Assembly, excludeAttributes: new[]
+        {
+                "Particular.Licensing.ReleaseDateAttribute",
+                "System.Runtime.Versioning.TargetFrameworkAttribute"
+            });
+
+#if NETFRAMEWORK
+        Approver.Verify(publicApi, scenario: "netframework");
+#endif
+#if NETCOREAPP
+            Approver.Verify(publicApi, scenario: "netstandard");
+#endif
     }
 }

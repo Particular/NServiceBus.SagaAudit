@@ -3,6 +3,7 @@
     using System;
     using System.Runtime.CompilerServices;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     [TestFixture]
@@ -44,7 +45,7 @@
                 StartTime = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
             };
             var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new MessageSerializationStrategy());
-            TestApprover.Verify(serialized);
+            Approver.Verify(serialized);
         }
     }
 }
