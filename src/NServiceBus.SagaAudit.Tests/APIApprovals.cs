@@ -9,17 +9,7 @@ public class APIApprovals
     [Test]
     public void Approve()
     {
-        var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditFeature).Assembly, excludeAttributes: new[]
-        {
-                "Particular.Licensing.ReleaseDateAttribute",
-                "System.Runtime.Versioning.TargetFrameworkAttribute"
-            });
-
-#if NETFRAMEWORK
-        Approver.Verify(publicApi, scenario: "netframework");
-#endif
-#if NETCOREAPP
-            Approver.Verify(publicApi, scenario: "netstandard");
-#endif
+        var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditFeature).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
+        Approver.Verify(publicApi);
     }
 }
