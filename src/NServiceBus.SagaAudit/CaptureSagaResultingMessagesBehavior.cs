@@ -26,9 +26,7 @@
                 return;
             }
 
-            SagaUpdatedMessage sagaUpdatedMessage;
-
-            if (!context.Extensions.TryGet(out sagaUpdatedMessage))
+            if (!context.Extensions.TryGet(out SagaUpdatedMessage sagaUpdatedMessage))
             {
                 return;
             }
