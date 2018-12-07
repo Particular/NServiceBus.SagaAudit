@@ -3,8 +3,8 @@
     using System;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using ApprovalUtilities.Utilities;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceInsight.Saga;
     using Settings;
     using SimpleJson;
@@ -31,7 +31,7 @@
                 }
             };
             var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
-            TestApprover.Verify(serialized);
+            Approver.Verify(serialized);
         }
 
         [Test]
@@ -147,12 +147,12 @@ namespace ServiceInsight.Saga
     {
         static readonly IList<string> StandardKeys = new List<string> { "$type", "Id", "Originator", "OriginalMessageId" };
 
-        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
+        public static List<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
             .Where(m => StandardKeys.All(s => s != m.Key))
             .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
             .ToList();
 
-        public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
+        public static List<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
     }
 }
 
