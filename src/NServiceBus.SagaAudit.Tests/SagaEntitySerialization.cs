@@ -4,6 +4,7 @@ namespace NServiceBus.SagaAudit.Tests
     using System;
     using System.Runtime.CompilerServices;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceInsight.Saga;
     using SimpleJson;
 
@@ -29,7 +30,7 @@ namespace NServiceBus.SagaAudit.Tests
                 }
             };
             var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
-            TestApprover.Verify(serialized);
+            Approver.Verify(serialized);
         }
 
         [Test]
