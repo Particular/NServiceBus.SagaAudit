@@ -8,7 +8,6 @@ using PublicApiGenerator;
 public class APIApprovals
 {
     [Test]
-    [MethodImpl(MethodImplOptions.NoInlining)]
     public void Approve()
     {
         var publicApi = ApiGenerator.GeneratePublicApi(typeof(SagaAuditHeaders).Assembly);
