@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using NServiceBus.SagaAudit;
+﻿using NServiceBus.SagaAudit;
 using NUnit.Framework;
 using Particular.Approvals;
 using PublicApiGenerator;
