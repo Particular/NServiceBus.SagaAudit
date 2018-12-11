@@ -33,9 +33,9 @@
 
         static bool TrySerializeOtherKnownTypes(object input, out object output)
         {
-            if (input is TimeSpan)
+            if (input is TimeSpan inputTimeSpan)
             {
-                output = ((TimeSpan)input).ToString("g", CultureInfo.InvariantCulture);
+                output = inputTimeSpan.ToString("g", CultureInfo.InvariantCulture);
                 return true;
             }
             output = null;

@@ -1,15 +1,14 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
-    using System.Runtime.CompilerServices;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
     [TestFixture]
     public class MessageSerialization
     {
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void SagaUpdated_serializes_correctly()
         {
             var entity = new SagaUpdatedMessage
@@ -44,7 +43,7 @@
                 StartTime = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
             };
             var serialized = SimpleJson.SimpleJson.SerializeObject(entity, new MessageSerializationStrategy());
-            TestApprover.Verify(serialized);
+            Approver.Verify(serialized);
         }
     }
 }
