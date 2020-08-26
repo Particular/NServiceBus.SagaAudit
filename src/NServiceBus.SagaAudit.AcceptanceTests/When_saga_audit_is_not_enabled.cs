@@ -54,8 +54,6 @@
 
             public class TheEndpointsSaga : Saga<TheEndpointsSagaData>, IAmStartedByMessages<MessageToBeAudited>
             {
-                public Context TestContext { get; set; }
-
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<TheEndpointsSagaData> mapper)
                 {
                     mapper.ConfigureMapping<MessageToBeAudited>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
@@ -68,7 +66,7 @@
                     return Task.FromResult(0);
                 }
             }
-            
+
             public class TheEndpointsSagaData : ContainSagaData
             {
                 public Guid TestRunId { get; set; }
@@ -93,12 +91,16 @@
 
             public class MessageToBeAuditedHandler : IHandleMessages<MessageToBeAudited>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public MessageToBeAuditedHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
-                    TestContext.Headers = context.MessageHeaders;
-                    TestContext.MessageAudited = true;
+                    testContext.Headers = context.MessageHeaders;
+                    testContext.MessageAudited = true;
                     return Task.FromResult(0);
                 }
             }

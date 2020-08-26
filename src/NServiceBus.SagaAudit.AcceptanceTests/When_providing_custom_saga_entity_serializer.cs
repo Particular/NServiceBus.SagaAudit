@@ -64,8 +64,6 @@
 
             public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<StartSaga>
             {
-                public Context TestContext { get; set; }
-
                 public Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
                     Data.DataId = message.DataId;
@@ -94,11 +92,15 @@
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public SagaUpdatedMessageHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    TestContext.MessagesReceived.Add(message);
+                    testContext.MessagesReceived.Add(message);
                     return Task.FromResult(0);
                 }
             }

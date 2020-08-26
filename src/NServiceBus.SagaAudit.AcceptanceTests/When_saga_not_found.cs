@@ -38,11 +38,15 @@
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public SagaUpdatedMessageHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    TestContext.Received = true;
+                    testContext.Received = true;
                     return Task.FromResult(0);
                 }
             }
@@ -96,16 +100,20 @@
 
             public class SagaNotFound : IHandleSagaNotFound
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public SagaNotFound(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(object message, IMessageProcessingContext context)
                 {
-                    TestContext.Done = true;
+                    testContext.Done = true;
                     return Task.FromResult(0);
                 }
             }
         }
-        
+
         class Context : ScenarioContext
         {
             public bool Done { get; set; }
