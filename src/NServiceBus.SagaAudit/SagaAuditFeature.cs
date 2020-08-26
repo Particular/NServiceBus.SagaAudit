@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using SagaAudit;
     using Transport;
@@ -25,7 +26,7 @@
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditInvokedSagaBehavior(), "Adds saga information to audit messages");
 
-            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.Build<IDispatchMessages>()));
+            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.GetRequiredService<IDispatchMessages>()));
         }
 
         class SagaAuditStartupTask : FeatureStartupTask
