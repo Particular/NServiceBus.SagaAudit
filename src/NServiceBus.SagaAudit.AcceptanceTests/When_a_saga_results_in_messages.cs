@@ -88,11 +88,15 @@
             public class MySaga : Saga<MySaga.MySagaData>,
                 IAmStartedByMessages<StartSaga>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public MySaga(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public async Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
-                    TestContext.WasStarted = true;
+                    testContext.WasStarted = true;
                     Data.DataId = message.DataId;
 
                     await context.Send(new TestCommand());
@@ -123,46 +127,62 @@
 
             public class TestCommandHandler : IHandleMessages<TestCommand>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TestCommandHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(TestCommand message, IMessageHandlerContext context)
                 {
-                    TestContext.CommandHandled = true;
-                    TestContext.TimeSent = DateTimeExtensions.ToUtcDateTime(context.MessageHeaders[Headers.TimeSent]);
-                    TestContext.MessageId = context.MessageId;
+                    testContext.CommandHandled = true;
+                    testContext.TimeSent = DateTimeExtensions.ToUtcDateTime(context.MessageHeaders[Headers.TimeSent]);
+                    testContext.MessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
 
             public class TestDelayedByCommandHandler : IHandleMessages<TestDelayedByCommand>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TestDelayedByCommandHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(TestDelayedByCommand message, IMessageHandlerContext context)
                 {
-                    TestContext.DelayedByCommandHandled = true;
+                    testContext.DelayedByCommandHandled = true;
                     return Task.FromResult(0);
                 }
             }
 
             public class TestDelayAtCommandHandler : IHandleMessages<TestDelayAtCommand>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TestDelayAtCommandHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(TestDelayAtCommand message, IMessageHandlerContext context)
                 {
-                    TestContext.DelayAtCommandHandled = true;
+                    testContext.DelayAtCommandHandled = true;
                     return Task.FromResult(0);
                 }
             }
 
             public class TestEventHandler : IHandleMessages<TestEvent>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TestEventHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(TestEvent message, IMessageHandlerContext context)
                 {
-                    TestContext.EventHandled = true;
+                    testContext.EventHandled = true;
                     return Task.FromResult(0);
                 }
             }
@@ -179,12 +199,16 @@
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public SagaUpdatedMessageHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    TestContext.SagaUpdateMessageReceived = true;
-                    TestContext.SagaUpdatedMessage = message;
+                    testContext.SagaUpdateMessageReceived = true;
+                    testContext.SagaUpdatedMessage = message;
                     return Task.FromResult(0);
                 }
             }

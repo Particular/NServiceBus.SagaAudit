@@ -82,7 +82,11 @@
 
             public class TheEndpointsSaga : Saga<TheEndpointsSagaData>, IAmStartedByMessages<MessageToBeAudited>, IAmStartedByMessages<MessageToBeAuditedByMultiple>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TheEndpointsSaga(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<TheEndpointsSagaData> mapper)
                 {
@@ -94,21 +98,25 @@
                 public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
-                    TestContext.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
                     return Task.FromResult(0);
                 }
 
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
-                    TestContext.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
                     return Task.FromResult(0);
                 }
             }
 
             public class TheEndpointsSagaAlternative : Saga<TheEndpointsSagaAlternativeData>, IAmStartedByMessages<MessageToBeAuditedByMultiple>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public TheEndpointsSagaAlternative(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<TheEndpointsSagaAlternativeData> mapper)
                 {
@@ -118,7 +126,7 @@
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
-                    TestContext.AlternativeSagaId = Data.Id;
+                    testContext.AlternativeSagaId = Data.Id;
                     return Task.FromResult(0);
                 }
             }
@@ -153,19 +161,23 @@
 
             public class MessageToBeAuditedHandler : IHandleMessages<MessageToBeAudited>, IHandleMessages<MessageToBeAuditedByMultiple>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public MessageToBeAuditedHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
-                    TestContext.MessageAudited = true;
-                    TestContext.Headers = context.MessageHeaders;
+                    testContext.MessageAudited = true;
+                    testContext.Headers = context.MessageHeaders;
                     return Task.FromResult(0);
                 }
 
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
-                    TestContext.MessageAudited = true;
-                    TestContext.Headers = context.MessageHeaders;
+                    testContext.MessageAudited = true;
+                    testContext.Headers = context.MessageHeaders;
                     return Task.FromResult(0);
                 }
             }

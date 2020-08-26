@@ -96,13 +96,17 @@
                                         IAmStartedByMessages<StartSaga>,
                                         IHandleTimeouts<MySaga.TimeHasPassed>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public MySaga(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
-                    TestContext.WasStarted = true;
+                    testContext.WasStarted = true;
                     Data.DataId = message.DataId;
-                    TestContext.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
                     Console.WriteLine("Handled");
 
                     return RequestTimeout(context, TimeSpan.FromMilliseconds(1), new TimeHasPassed());
@@ -112,7 +116,7 @@
                 {
                     MarkAsComplete();
 
-                    TestContext.TimeoutReceived = true;
+                    testContext.TimeoutReceived = true;
                     return Task.FromResult(0);
                 }
 
@@ -143,11 +147,15 @@
 
             public class SagaUpdatedMessageHandler : IHandleMessages<SagaUpdatedMessage>
             {
-                public Context TestContext { get; set; }
+                Context testContext;
+                public SagaUpdatedMessageHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    TestContext.MessagesReceived.Add(message);
+                    testContext.MessagesReceived.Add(message);
                     return Task.FromResult(0);
                 }
             }
