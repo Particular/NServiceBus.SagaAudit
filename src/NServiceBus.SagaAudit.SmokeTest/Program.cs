@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
 
     class Program
@@ -25,8 +26,8 @@
             var busConfiguration = new EndpointConfiguration("NServiceBus.SagaAudit.SmokeTest");
             busConfiguration.RegisterComponents(c =>
             {
-                c.RegisterSingleton(masters);
-                c.RegisterSingleton(cancellationSource);
+                c.AddSingleton(masters);
+                c.AddSingleton(cancellationSource);
             });
             busConfiguration.UseSerialization<NewtonsoftSerializer>();
             busConfiguration.EnableInstallers();
