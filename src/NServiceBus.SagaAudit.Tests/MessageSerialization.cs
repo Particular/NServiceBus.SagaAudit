@@ -31,16 +31,19 @@
                 },
                 IsCompleted = true,
                 IsNew = true,
-                ResultingMessages = { new SagaChangeOutput
-                {
-                    Destination = "Destination",
-                    MessageType = "MessageType",
-                    DeliveryAt = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc),
-                    DeliveryDelay = TimeSpan.FromSeconds(4000),
-                    Intent = "Intent",
-                    ResultingMessageId = "ResultingMessageId",
-                    TimeSent = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
-                }},
+                ResultingMessages = 
+                { 
+                    new SagaChangeOutput
+                    {
+                        Destination = "Destination",
+                        MessageType = "MessageType",
+                        DeliveryAt = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc),
+                        DeliveryDelay = TimeSpan.FromSeconds(4000),
+                        Intent = "Intent",
+                        ResultingMessageId = "ResultingMessageId",
+                        TimeSent = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
+                    }
+                },
                 SagaType = "SagaType",
                 StartTime = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
             };

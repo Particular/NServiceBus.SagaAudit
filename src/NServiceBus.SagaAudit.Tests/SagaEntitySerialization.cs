@@ -70,7 +70,6 @@ namespace NServiceBus.SagaAudit.Tests
                 {
                     case "DateProperty":
                     case "NullableDateProperty":
-                        // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         expected = DateTime.Parse(expected).ToUniversalTime().ToString();
                         break;
                     case "NestedObjectProperty":

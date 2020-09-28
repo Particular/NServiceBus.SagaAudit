@@ -71,7 +71,8 @@
                     catch (TaskCanceledException)
                     {
                     }
-                } while (!token.IsCancellationRequested);
+                } 
+                while (!token.IsCancellationRequested);
             }
             finally
             {

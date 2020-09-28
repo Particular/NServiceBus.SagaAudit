@@ -39,7 +39,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
         {
             Log.InfoFormat($"Child {Data.Identifier} requesting work");
 
-            return Task.WhenAll(new []
+            return Task.WhenAll(new[]
             {
                 context.SendLocal(new DoSomeWork
                 {

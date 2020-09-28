@@ -68,9 +68,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using SimpleJson.Reflection;
 
-// ReSharper disable LoopCanBeConvertedToQuery
-// ReSharper disable RedundantExplicitArrayCreation
-// ReSharper disable SuggestUseVarKeywordEvident
 namespace SimpleJson
 {
     /// <summary>
@@ -2122,6 +2119,3 @@ namespace SimpleJson
         }
     }
 }
-// ReSharper restore LoopCanBeConvertedToQuery
-// ReSharper restore RedundantExplicitArrayCreation
-// ReSharper restore SuggestUseVarKeywordEvident
