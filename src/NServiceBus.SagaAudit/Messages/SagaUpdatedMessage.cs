@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using NServiceBus;
 
-    class SagaUpdatedMessage:IMessage
+    class SagaUpdatedMessage : IMessage
     {
         public string SagaState { get; set; }
         public Guid SagaId { get; set; }

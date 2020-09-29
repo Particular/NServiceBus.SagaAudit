@@ -14,7 +14,7 @@
         /// <summary>
         /// Sets the ServiceControl queue address.
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="config">The endpoint's configuration to modify</param>
         /// <param name="serviceControlQueue">ServiceControl queue address.</param>
         /// <param name="customSagaEntitySerialization">A custom strategy for serializing saga state.</param>
         public static void AuditSagaStateChanges(this EndpointConfiguration config, string serviceControlQueue, Func<object, Dictionary<string, string>> customSagaEntitySerialization = null)
