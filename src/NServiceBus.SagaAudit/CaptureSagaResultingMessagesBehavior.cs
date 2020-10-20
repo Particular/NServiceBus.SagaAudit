@@ -39,7 +39,7 @@
                 deliveryDelay = delayDeliveryWith.Delay;
             }
 
-            DateTime? doNotDeliverBefore = null;
+            DateTimeOffset? doNotDeliverBefore = null;
             if (context.Extensions.TryGetDeliveryConstraint(out DoNotDeliverBefore notDeliverBefore))
             {
                 doNotDeliverBefore = notDeliverBefore.At;
@@ -51,7 +51,7 @@
                 TimeSent = DateTime.UtcNow,
                 MessageType = logicalMessage.MessageType.ToString(),
                 DeliveryDelay = deliveryDelay,
-                DeliveryAt = doNotDeliverBefore,
+                DeliveryAt =  doNotDeliverBefore?.UtcDateTime,
                 Destination = GetDestinationForUnicastMessages(context),
                 Intent = context.Headers[Headers.MessageIntent]
             };

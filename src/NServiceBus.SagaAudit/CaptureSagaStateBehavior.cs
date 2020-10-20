@@ -67,8 +67,8 @@
             var messageType = context.MessageMetadata.MessageType.FullName;
             var headers = context.MessageHeaders;
 
-            sagaAudit.StartTime = activeSagaInstance.Created;
-            sagaAudit.FinishTime = activeSagaInstance.Modified;
+            sagaAudit.StartTime = activeSagaInstance.Created.UtcDateTime;
+            sagaAudit.FinishTime = activeSagaInstance.Modified.UtcDateTime;
             sagaAudit.Initiator = BuildSagaChangeInitiatorMessage(headers, messageId, messageType);
             sagaAudit.IsNew = activeSagaInstance.IsNew;
             sagaAudit.IsCompleted = saga.Completed;
@@ -89,9 +89,9 @@
 
             headers.TryGetValue(Headers.OriginatingEndpoint, out var originatingEndpoint);
 
-            var timeSentConveredToUtc = headers.TryGetValue(Headers.TimeSent, out var timeSent) ?
-                DateTimeExtensions.ToUtcDateTime(timeSent) :
-                DateTime.MinValue;
+            var timeSent = headers.TryGetValue(Headers.TimeSent, out var timeSentHeaderValue) ?
+                DateTimeOffsetHelper.ToDateTimeOffset(timeSentHeaderValue) :
+                DateTimeOffset.MinValue;
 
             var intent = headers.TryGetValue(Headers.MessageIntent, out var messageIntent) ? messageIntent : "Send"; // Just in case the received message is from an early version that does not have intent, should be a rare occasion.
 
@@ -104,7 +104,7 @@
                     OriginatingMachine = originatingMachine,
                     OriginatingEndpoint = originatingEndpoint,
                     MessageType = messageType,
-                    TimeSent = timeSentConveredToUtc,
+                    TimeSent = timeSent.UtcDateTime,
                     Intent = intent
                 };
         }

@@ -31,7 +31,7 @@
             });
             busConfiguration.UseSerialization<NewtonsoftSerializer>();
             busConfiguration.EnableInstallers();
-            busConfiguration.UsePersistence<InMemoryPersistence>();
+            busConfiguration.UsePersistence<LearningPersistence>();
             busConfiguration.SendFailedMessagesTo("error");
             busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
