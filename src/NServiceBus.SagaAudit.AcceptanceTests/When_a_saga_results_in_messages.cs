@@ -31,7 +31,7 @@
             Assert.IsNotNull(command, "Command messages not single or not found");
             Assert.AreEqual(MessageIntentEnum.Send.ToString(), command.Intent, "Command intent mismatch");
             Assert.AreEqual(context.MessageId, command.ResultingMessageId, "MessageId mismatch");
-            Assert.AreEqual(context.TimeSent.Round(TimeSpan.FromSeconds(1)), command.TimeSent.Round(TimeSpan.FromSeconds(1)), "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
+            Assert.Less(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), 1d , "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
             Assert.AreEqual(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)), command.Destination, "Destination mismatch");
             Assert.IsNull(command.DeliveryDelay, "Command DeliveryDelay");
             Assert.IsNull(command.DeliveryAt, "Command DeliveryAt");
@@ -60,7 +60,7 @@
             public bool EventHandled { get; set; }
             public bool SagaUpdateMessageReceived { get; set; }
             public SagaUpdatedMessage SagaUpdatedMessage { get; set; }
-            public DateTime TimeSent { get; set; }
+            public DateTimeOffset TimeSent { get; set; }
             public string MessageId { get; set; }
             public bool DelayedByCommandHandled { get; set; }
             public bool DelayAtCommandHandled { get; set; }
@@ -136,7 +136,7 @@
                 public Task Handle(TestCommand message, IMessageHandlerContext context)
                 {
                     testContext.CommandHandled = true;
-                    testContext.TimeSent = DateTimeExtensions.ToUtcDateTime(context.MessageHeaders[Headers.TimeSent]);
+                    testContext.TimeSent = DateTimeOffsetHelper.ToDateTimeOffset(context.MessageHeaders[Headers.TimeSent]);
                     testContext.MessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
@@ -233,30 +233,6 @@
 
         public class TestEvent : IEvent
         {
-        }
-    }
-
-    //https://stackoverflow.com/a/4108889/1322687
-    static class DateTimeRoundingExtensions
-    {
-        static TimeSpan Round(this TimeSpan time, TimeSpan roundingInterval, MidpointRounding roundingType)
-        {
-            return new TimeSpan(
-                Convert.ToInt64(Math.Round(
-                    time.Ticks / (decimal)roundingInterval.Ticks,
-                    roundingType
-                )) * roundingInterval.Ticks
-            );
-        }
-
-        static TimeSpan Round(this TimeSpan time, TimeSpan roundingInterval)
-        {
-            return Round(time, roundingInterval, MidpointRounding.ToEven);
-        }
-
-        public static DateTime Round(this DateTime datetime, TimeSpan roundingInterval)
-        {
-            return new DateTime((datetime - DateTime.MinValue).Round(roundingInterval).Ticks);
         }
     }
 }
