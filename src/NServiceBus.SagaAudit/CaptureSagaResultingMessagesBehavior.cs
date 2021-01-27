@@ -26,9 +26,7 @@
                 return;
             }
 
-            SagaUpdatedMessage sagaUpdatedMessage;
-
-            if (!context.Extensions.TryGet(out sagaUpdatedMessage))
+            if (!context.Extensions.TryGet(out SagaUpdatedMessage sagaUpdatedMessage))
             {
                 return;
             }
@@ -51,7 +49,7 @@
                 TimeSent = DateTime.UtcNow,
                 MessageType = logicalMessage.MessageType.ToString(),
                 DeliveryDelay = deliveryDelay,
-                DeliveryAt =  doNotDeliverBefore?.UtcDateTime,
+                DeliveryAt = doNotDeliverBefore?.UtcDateTime,
                 Destination = GetDestinationForUnicastMessages(context),
                 Intent = context.Headers[Headers.MessageIntent]
             };

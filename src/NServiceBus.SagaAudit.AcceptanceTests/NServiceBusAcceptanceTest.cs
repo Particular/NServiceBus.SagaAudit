@@ -28,7 +28,7 @@ namespace NServiceBus.AcceptanceTests
 
                 testName = testName.Replace("_", "");
 
-                return testName +"."+ endpointBuilder;
+                return testName + "." + endpointBuilder;
             };
         }
     }

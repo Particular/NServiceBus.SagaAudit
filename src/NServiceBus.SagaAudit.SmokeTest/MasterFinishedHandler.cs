@@ -10,11 +10,11 @@
 
     class MasterFinishedHandler : IHandleMessages<MasterFinished>
     {
-        readonly ConcurrentDictionary<Guid,bool> masters;
+        readonly ConcurrentDictionary<Guid, bool> masters;
         readonly CancellationTokenSource tokenSource;
         static ILog Log = LogManager.GetLogger<MasterFinishedHandler>();
 
-        public MasterFinishedHandler(ConcurrentDictionary<Guid,bool> masters, CancellationTokenSource tokenSource)
+        public MasterFinishedHandler(ConcurrentDictionary<Guid, bool> masters, CancellationTokenSource tokenSource)
         {
             this.masters = masters;
             this.tokenSource = tokenSource;
