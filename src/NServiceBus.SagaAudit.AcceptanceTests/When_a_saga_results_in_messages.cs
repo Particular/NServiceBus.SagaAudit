@@ -31,7 +31,7 @@
             Assert.IsNotNull(command, "Command messages not single or not found");
             Assert.AreEqual(MessageIntentEnum.Send.ToString(), command.Intent, "Command intent mismatch");
             Assert.AreEqual(context.MessageId, command.ResultingMessageId, "MessageId mismatch");
-            Assert.Less(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), 1d , "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
+            Assert.Less(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), 1d, "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
             Assert.AreEqual(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)), command.Destination, "Destination mismatch");
             Assert.IsNull(command.DeliveryDelay, "Command DeliveryDelay");
             Assert.IsNull(command.DeliveryAt, "Command DeliveryAt");

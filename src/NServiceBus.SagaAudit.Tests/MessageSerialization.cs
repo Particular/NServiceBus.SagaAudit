@@ -31,8 +31,8 @@
                 },
                 IsCompleted = true,
                 IsNew = true,
-                ResultingMessages = 
-                { 
+                ResultingMessages =
+                {
                     new SagaChangeOutput
                     {
                         Destination = "Destination",

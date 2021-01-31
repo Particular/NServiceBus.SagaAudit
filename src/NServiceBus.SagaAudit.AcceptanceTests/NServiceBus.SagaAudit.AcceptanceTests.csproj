@@ -15,14 +15,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="NUnit" Version="3.13.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeInitiator.cs" />
     <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaChangeOutput.cs" />
     <Compile Include="..\NServiceBus.SagaAudit\Messages\SagaUpdatedMessage.cs" />
-    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
   </ItemGroup>
 
 </Project>

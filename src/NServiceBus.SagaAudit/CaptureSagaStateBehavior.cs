@@ -83,7 +83,7 @@
             return backend.Send(sagaAudit, transportTransaction);
         }
 
-        internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType )
+        internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType)
         {
             headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine);
 
@@ -98,15 +98,15 @@
             var isTimeoutMessage = headers.TryGetValue(Headers.IsSagaTimeoutMessage, out var isTimeout) && isTimeout.ToLowerInvariant() == "true";
 
             return new SagaChangeInitiator
-                {
-                    IsSagaTimeoutMessage = isTimeoutMessage,
-                    InitiatingMessageId = messageId,
-                    OriginatingMachine = originatingMachine,
-                    OriginatingEndpoint = originatingEndpoint,
-                    MessageType = messageType,
-                    TimeSent = timeSent.UtcDateTime,
-                    Intent = intent
-                };
+            {
+                IsSagaTimeoutMessage = isTimeoutMessage,
+                InitiatingMessageId = messageId,
+                OriginatingMachine = originatingMachine,
+                OriginatingEndpoint = originatingEndpoint,
+                MessageType = messageType,
+                TimeSent = timeSent.UtcDateTime,
+                Intent = intent
+            };
         }
 
         static void AssignSagaStateChangeCausedByMessage(IInvokeHandlerContext context, ActiveSagaInstance sagaInstance, SagaUpdatedMessage sagaAudit)
