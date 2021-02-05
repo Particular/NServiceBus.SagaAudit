@@ -1,8 +1,6 @@
-﻿#if NET452
-namespace NServiceBus.SagaAudit.Tests
+﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
-    using System.Runtime.CompilerServices;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceInsight.Saga;
@@ -12,7 +10,6 @@ namespace NServiceBus.SagaAudit.Tests
     public class SagaEntitySerialization
     {
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Saga_entity_serializes_correctly()
         {
             var entity = new SagaEntity
@@ -75,6 +72,8 @@ namespace NServiceBus.SagaAudit.Tests
                     case "NestedObjectProperty":
                         value = p.Value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
                         break;
+                    default:
+                        break;
                 }
 
                 Assert.AreEqual(expected, value, p.Key);
@@ -102,7 +101,9 @@ namespace NServiceBus.SagaAudit.Tests
             public TimeSpan? NullableTimeProperty { get; set; }
             public NestedObject NestedObjectProperty { get; set; }
             public static string StaticProperty { get; set; } = "test";
+#pragma warning disable IDE0051 // Remove unused private members
             string PrivateProperty { get; set; } = "test";
+#pragma warning restore IDE0051 // Remove unused private members
         }
     }
 }
@@ -125,5 +126,3 @@ namespace ServiceInsight.Saga
         public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
     }
 }
-
-#endif

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -10,11 +10,11 @@
     <Description>Allows auditing of saga state changes in NServiceBus endpoints</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Public dependencies">
     <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.631, 9.0.0)" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Private dependencies">
     <PackageReference Include="Particular.Packaging" Version="0.9.0" PrivateAssets="All" />
   </ItemGroup>
 
