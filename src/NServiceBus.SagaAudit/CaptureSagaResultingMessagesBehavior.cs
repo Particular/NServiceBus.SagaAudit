@@ -3,8 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using DelayedDelivery;
-    using DeliveryConstraints;
+    using NServiceBus.Transport;
     using Pipeline;
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
@@ -32,15 +31,11 @@
             }
 
             TimeSpan? deliveryDelay = null;
-            if (context.Extensions.TryGetDeliveryConstraint(out DelayDeliveryWith delayDeliveryWith))
-            {
-                deliveryDelay = delayDeliveryWith.Delay;
-            }
-
             DateTimeOffset? doNotDeliverBefore = null;
-            if (context.Extensions.TryGetDeliveryConstraint(out DoNotDeliverBefore notDeliverBefore))
+            if (context.Extensions.TryGet(out DispatchProperties properties))
             {
-                doNotDeliverBefore = notDeliverBefore.At;
+                deliveryDelay = properties.DelayDeliveryWith?.Delay;
+                doNotDeliverBefore = properties.DoNotDeliverBefore?.At;
             }
 
             var sagaResultingMessage = new SagaChangeOutput

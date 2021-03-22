@@ -36,7 +36,7 @@
             busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 
-            var routing = busConfiguration.UseTransport<MsmqTransport>().Routing();
+            var routing = busConfiguration.UseTransport(new MsmqTransport());
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
             routing.RegisterPublisher(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 

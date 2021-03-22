@@ -88,7 +88,6 @@
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.AuditSagaStateChanges(receiverEndpoint);
-                    config.EnableFeature<TimeoutManager>();
                 });
             }
 

@@ -80,7 +80,7 @@
             AssignSagaStateChangeCausedByMessage(context, activeSagaInstance, sagaAudit);
 
             var transportTransaction = context.Extensions.Get<TransportTransaction>();
-            return backend.Send(sagaAudit, transportTransaction);
+            return backend.Send(sagaAudit, transportTransaction, context.CancellationToken);
         }
 
         internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType)

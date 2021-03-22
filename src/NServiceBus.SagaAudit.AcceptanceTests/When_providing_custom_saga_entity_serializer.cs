@@ -58,7 +58,6 @@
                         };
                         return result;
                     });
-                    config.EnableFeature<TimeoutManager>();
                 });
             }
 

@@ -3,9 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
-    using DeliveryConstraints;
-    using Extensibility;
     using Logging;
     using NServiceBus;
     using Performance.TimeToBeReceived;
@@ -23,7 +22,7 @@
             this.localAddress = localAddress;
         }
 
-        async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction)
+        async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction, CancellationToken cancellationToken)
         {
             var body = Serialize(messageToSend);
 
@@ -38,8 +37,9 @@
             try
             {
                 var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), headers, body);
-                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), deliveryConstraints: new List<DeliveryConstraint> { new DiscardIfNotReceivedBefore(timeToBeReceived) });
-                await messageSender.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag()).ConfigureAwait(false);
+
+                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) });
+                await messageSender.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -52,12 +52,12 @@
             return Encoding.UTF8.GetBytes(SimpleJson.SerializeObject(messageToSend, serializerStrategy));
         }
 
-        public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction)
+        public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
         {
-            return Send(messageToSend, TimeSpan.MaxValue, transportTransaction);
+            return Send(messageToSend, TimeSpan.MaxValue, transportTransaction, cancellationToken);
         }
 
-        public async Task Start(IDispatchMessages dispatcher)
+        public async Task Start(IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             messageSender = dispatcher;
             try
@@ -69,7 +69,7 @@
                 var outgoingMessage = ControlMessageFactory.Create(MessageIntentEnum.Send);
                 outgoingMessage.Headers[Headers.ReplyToAddress] = localAddress;
                 var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue));
-                await messageSender.Dispatch(new TransportOperations(operation), new TransportTransaction(), new ContextBag()).ConfigureAwait(false);
+                await messageSender.Dispatch(new TransportOperations(operation), new TransportTransaction(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -80,7 +80,7 @@ Please ensure that the specified queue is correct.";
             }
         }
 
-        IDispatchMessages messageSender;
+        IMessageDispatcher messageSender;
 
         string destinationQueue;
         string localAddress;
