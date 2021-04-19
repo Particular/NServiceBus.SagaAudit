@@ -61,9 +61,9 @@ namespace NServiceBus.SagaAudit
 
         static bool TrySerializeOtherKnownTypes(object input, out object output)
         {
-            if (input is TimeSpan)
+            if (input is TimeSpan span)
             {
-                output = ((TimeSpan)input).ToString("c", CultureInfo.InvariantCulture);
+                output = span.ToString("c", CultureInfo.InvariantCulture);
                 return true;
             }
             output = null;

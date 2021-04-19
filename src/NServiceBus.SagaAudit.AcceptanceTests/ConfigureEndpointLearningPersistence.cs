@@ -26,7 +26,6 @@ public class ConfigureEndpointLearningPersistence
         storageDir = Path.Combine(tempDir, testRunId);
 
         configuration.UsePersistence<AcceptanceTestingPersistence, StorageType.Subscriptions>();
-        configuration.UsePersistence<AcceptanceTestingPersistence, StorageType.Timeouts>();
 
         configuration.UsePersistence<LearningPersistence, StorageType.Sagas>()
             .SagaStorageDirectory(storageDir);

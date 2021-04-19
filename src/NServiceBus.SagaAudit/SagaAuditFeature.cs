@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -26,26 +27,26 @@
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditInvokedSagaBehavior(), "Adds saga information to audit messages");
 
-            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.GetRequiredService<IDispatchMessages>()));
+            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.GetRequiredService<IMessageDispatcher>()));
         }
 
         class SagaAuditStartupTask : FeatureStartupTask
         {
             ServiceControlBackend serviceControlBackend;
-            IDispatchMessages dispatcher;
+            IMessageDispatcher dispatcher;
 
-            public SagaAuditStartupTask(ServiceControlBackend backend, IDispatchMessages dispatcher)
+            public SagaAuditStartupTask(ServiceControlBackend backend, IMessageDispatcher dispatcher)
             {
                 serviceControlBackend = backend;
                 this.dispatcher = dispatcher;
             }
 
-            protected override Task OnStart(IMessageSession session)
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken)
             {
-                return serviceControlBackend.Start(dispatcher);
+                return serviceControlBackend.Start(dispatcher, cancellationToken);
             }
 
-            protected override Task OnStop(IMessageSession session)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken)
             {
                 return Task.FromResult(0);
             }
