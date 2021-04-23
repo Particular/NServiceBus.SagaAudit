@@ -41,12 +41,12 @@
                 this.dispatcher = dispatcher;
             }
 
-            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken)
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 return serviceControlBackend.Start(dispatcher, cancellationToken);
             }
 
-            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(0);
             }
