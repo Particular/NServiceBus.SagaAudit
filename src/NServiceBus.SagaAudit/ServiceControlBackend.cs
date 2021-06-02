@@ -41,7 +41,7 @@
                 var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) });
                 await messageSender.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ex.IsCausedBy(cancellationToken))
             {
                 Logger.Warn("Unable to send saga state change infromation to ServiceControl.", ex);
             }
@@ -71,7 +71,7 @@
                 var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue));
                 await messageSender.Dispatch(new TransportOperations(operation), new TransportTransaction(), cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ex.IsCausedBy(cancellationToken))
             {
                 const string errMsg = @"You have enabled saga state change auditing in your endpoint, however, this endpoint is unable to contact the ServiceControl to report endpoint information.
 Please ensure that the specified queue is correct.";
