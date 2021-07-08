@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="8.0.0-alpha.940" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
-    <PackageReference Include="NServiceBus.Transport.Msmq" Version="2.0.0-alpha.260" />
+    <PackageReference Include="NServiceBus.Transport.Msmq" Version="2.0.0-alpha.339" />
   </ItemGroup>
 
 </Project>
