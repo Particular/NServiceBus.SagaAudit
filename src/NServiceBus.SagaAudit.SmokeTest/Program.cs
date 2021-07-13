@@ -16,8 +16,6 @@
             var masters = new ConcurrentDictionary<Guid, bool>();
             var cancellationSource = new CancellationTokenSource();
 
-
-
             var busConfiguration = new EndpointConfiguration("NServiceBus.SagaAudit.SmokeTest");
             busConfiguration.RegisterComponents(c =>
             {
@@ -31,9 +29,8 @@
             busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 
-            var routing = busConfiguration.UseTransport(new MsmqTransport());
+            var routing = busConfiguration.UseTransport(new LearningTransport());
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
-            routing.RegisterPublisher(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 
             var endpoint = await Endpoint.Start(busConfiguration);
 
