@@ -66,7 +66,7 @@
                 // If we are unable to send a message because the queue doesn't exist, then we can fail fast.
                 // We currently don't have a way to check if Queue exists in a transport agnostic way,
                 // hence the send.
-                var outgoingMessage = ControlMessageFactory.Create(MessageIntentEnum.Send);
+                var outgoingMessage = ControlMessageFactory.Create(MessageIntent.Send);
                 outgoingMessage.Headers[Headers.ReplyToAddress] = localAddress;
                 var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue));
                 await messageSender.Dispatch(new TransportOperations(operation), new TransportTransaction(), cancellationToken).ConfigureAwait(false);
@@ -87,6 +87,6 @@ Please ensure that the specified queue is correct.";
 
         static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
-        readonly string sendIntent = MessageIntentEnum.Send.ToString();
+        readonly string sendIntent = MessageIntent.Send.ToString();
     }
 }
