@@ -61,7 +61,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
                         Identifier = Data.Identifier,
                         WorkRequired = Data.WorkRequired
                     }),
-                    RequestTimeout<MasterTimedOut>(context, DateTime.UtcNow.AddSeconds(2))
+                    RequestTimeout<MasterTimedOut>(context, DateTimeOffset.UtcNow.AddSeconds(2))
                     );
             }
             return Task.FromResult(0);
@@ -76,7 +76,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
                 Log.Warn($"Master Saga {Data.Identifier} Timed Out");
             }
 
-            return RequestTimeout<MasterTimedOut>(context, DateTime.UtcNow.AddSeconds(10));
+            return RequestTimeout<MasterTimedOut>(context, DateTimeOffset.UtcNow.AddSeconds(10));
         }
 
         public Task Handle(WorkRequestedAt message, IMessageHandlerContext context)

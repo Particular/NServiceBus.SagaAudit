@@ -13,7 +13,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
         {
             Log.Info($"DoSomeWorkHandler handling message for {message.Identifier}");
 
-            return Task.Delay(TimeSpan.FromSeconds(2))
+            return Task.Delay(TimeSpan.FromSeconds(2), context.CancellationToken)
                 .ContinueWith(task => context.Publish(new SomeWorkIsComplete
                 {
                     Identifier = message.Identifier,
