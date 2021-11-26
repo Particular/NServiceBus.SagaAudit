@@ -16,10 +16,10 @@
 
     class ServiceControlBackend
     {
-        public ServiceControlBackend(string destinationQueue, string localAddress)
+        public ServiceControlBackend(string destinationQueue, ReceiveAddresses receiveAddresses)
         {
             this.destinationQueue = destinationQueue;
-            this.localAddress = localAddress;
+            localAddress = receiveAddresses.MainReceiveAddress;
         }
 
         async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction, CancellationToken cancellationToken)

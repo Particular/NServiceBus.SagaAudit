@@ -22,12 +22,12 @@
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
             var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>>(SettingsKeys.CustomSerialization);
 
-            var backend = new ServiceControlBackend(serviceControlQueue, context.Settings.LocalAddress());
-            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), backend, customSagaEntitySerialization));
+            context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditInvokedSagaBehavior(), "Adds saga information to audit messages");
 
-            context.RegisterStartupTask(b => new SagaAuditStartupTask(backend, b.GetRequiredService<IMessageDispatcher>()));
+            context.RegisterStartupTask(b => new SagaAuditStartupTask(b.GetRequiredService<ServiceControlBackend>(), b.GetRequiredService<IMessageDispatcher>()));
         }
 
         class SagaAuditStartupTask : FeatureStartupTask
