@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.1900" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.3022" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="3.0.0-alpha.155 " />
   </ItemGroup>
 
