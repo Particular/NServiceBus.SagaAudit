@@ -1,6 +1,8 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
+    using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NUnit.Framework;
     using SagaAudit;
@@ -20,20 +22,26 @@
             Assert.AreEqual("NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000;NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000", invokedSagas);
         }
 
-        class MySaga : Saga
+        class MySaga : Saga<Data>, IAmStartedByMessages<SagaStartMessage>
         {
             public MySaga()
             {
                 Entity = new Data();
             }
 
-            protected override void ConfigureHowToFindSaga(IConfigureHowToFindSagaWithMessage sagaMessageFindingConfiguration)
-            {
-            }
+            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Data> mapper) =>
+                mapper.MapSaga(s => s.SagaId).ToMessage<SagaStartMessage>(m => m.Id);
 
-            class Data : ContainSagaData
-            {
-            }
+            public Task Handle(SagaStartMessage message, IMessageHandlerContext context) => Task.CompletedTask;
+        }
+        class Data : ContainSagaData
+        {
+            public Guid SagaId { get; set; }
+        }
+
+        class SagaStartMessage : IMessage
+        {
+            public Guid Id { get; set; }
         }
     }
 }
