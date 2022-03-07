@@ -16,10 +16,11 @@ namespace NServiceBus.SagaAudit.SmokeTest
 
         protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MasterSagaData> mapper)
         {
-            mapper.ConfigureMapping<StartMasterAlpha>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
-            mapper.ConfigureMapping<StartMasterBeta>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
-            mapper.ConfigureMapping<WorkRequestedAt>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
-            mapper.ConfigureMapping<ChildFinished>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
+            mapper.MapSaga(s => s.Identifier)
+                .ToMessage<StartMasterAlpha>(msg => msg.Identifier)
+                .ToMessage<StartMasterBeta>(msg => msg.Identifier)
+                .ToMessage<WorkRequestedAt>(msg => msg.Identifier)
+                .ToMessage<ChildFinished>(msg => msg.Identifier);
         }
 
         public Task Handle(StartMasterAlpha message, IMessageHandlerContext context)

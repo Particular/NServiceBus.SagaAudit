@@ -13,8 +13,9 @@ namespace NServiceBus.SagaAudit.SmokeTest
 
         protected override void ConfigureHowToFindSaga(SagaPropertyMapper<ChildSagaData> mapper)
         {
-            mapper.ConfigureMapping<StartChild>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
-            mapper.ConfigureMapping<SomeWorkIsComplete>(msg => msg.Identifier).ToSaga(saga => saga.Identifier);
+            mapper.MapSaga(s => s.Identifier)
+                .ToMessage<StartChild>(msg => msg.Identifier)
+                .ToMessage<SomeWorkIsComplete>(msg => msg.Identifier);
         }
 
 

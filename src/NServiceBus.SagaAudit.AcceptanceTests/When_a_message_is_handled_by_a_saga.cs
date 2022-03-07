@@ -90,8 +90,9 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<TheEndpointsSagaData> mapper)
                 {
-                    mapper.ConfigureMapping<MessageToBeAudited>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
-                    mapper.ConfigureMapping<MessageToBeAuditedByMultiple>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
+                    mapper.MapSaga(s => s.TestRunId)
+                        .ToMessage<MessageToBeAudited>(msg => msg.Id)
+                        .ToMessage<MessageToBeAuditedByMultiple>(msg => msg.Id);
                 }
 
 

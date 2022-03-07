@@ -93,8 +93,9 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MyData> mapper)
                 {
-                    mapper.ConfigureMapping<NotSent>(message => message.MessageId).ToSaga(saga => saga.MessageId);
-                    mapper.ConfigureMapping<MessageToBeAudited>(message => message.MessageId).ToSaga(saga => saga.MessageId);
+                    mapper.MapSaga(s => s.MessageId)
+                        .ToMessage<NotSent>(message => message.MessageId)
+                        .ToMessage<MessageToBeAudited>(message => message.MessageId);
                 }
             }
 
