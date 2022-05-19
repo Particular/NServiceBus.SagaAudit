@@ -18,7 +18,7 @@
             this.typesToInclude = typesToInclude;
         }
 
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             var types = endpointConfiguration.GetTypesScopedByTestClass();
 
@@ -41,7 +41,7 @@
 
             await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
-            configurationBuilderCustomization(configuration);
+            await configurationBuilderCustomization(configuration);
 
             return configuration;
         }
