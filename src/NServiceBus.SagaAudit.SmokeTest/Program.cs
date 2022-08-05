@@ -22,7 +22,7 @@
                 c.AddSingleton(masters);
                 c.AddSingleton(cancellationSource);
             });
-            busConfiguration.UseSerialization<NewtonsoftSerializer>();
+            busConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<LearningPersistence>();
             busConfiguration.SendFailedMessagesTo("error");
