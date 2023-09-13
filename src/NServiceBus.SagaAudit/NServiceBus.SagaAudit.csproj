@@ -18,4 +18,8 @@
     <PackageReference Include="Particular.Packaging" Version="3.0.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="NServiceBus.SagaAudit.Tests" Key="$(NServiceBusTestsKey)" />
+  </ItemGroup>
+
 </Project>
