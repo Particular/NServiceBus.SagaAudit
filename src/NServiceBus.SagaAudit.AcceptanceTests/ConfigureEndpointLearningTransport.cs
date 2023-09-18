@@ -6,7 +6,7 @@ using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.Transport;
 using NUnit.Framework;
 
-public class ConfigureEndpointLearningTransport
+public class ConfigureEndpointLearningTransport : IConfigureEndpointTestExecution
 {
     public Task Cleanup()
     {

@@ -5,10 +5,8 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Features;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 

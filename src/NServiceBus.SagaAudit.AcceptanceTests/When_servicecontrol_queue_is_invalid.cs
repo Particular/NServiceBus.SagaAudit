@@ -4,8 +4,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using AcceptanceTesting.EndpointTemplates;
     using NUnit.Framework;
 
     class When_servicecontrol_queue_is_invalid : NServiceBusAcceptanceTest

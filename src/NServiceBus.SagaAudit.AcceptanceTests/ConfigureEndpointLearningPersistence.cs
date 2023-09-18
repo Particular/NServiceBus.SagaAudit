@@ -5,7 +5,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using NUnit.Framework;
 
-public class ConfigureEndpointLearningPersistence
+public class ConfigureEndpointLearningPersistence : IConfigureEndpointTestExecution
 {
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {

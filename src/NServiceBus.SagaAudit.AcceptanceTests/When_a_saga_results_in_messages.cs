@@ -4,8 +4,8 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
@@ -73,7 +73,7 @@
                 {
                     var receiverEndpoint = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(FakeServiceControl));
                     config.AuditSagaStateChanges(receiverEndpoint);
-                    var routing = config.ConfigureRouting();
+                    var routing = EndpointConfigurationExtensions.ConfigureRouting(config);
                     routing.RouteToEndpoint(typeof(TestCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
                     routing.RouteToEndpoint(typeof(TestDelayAtCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
                     routing.RouteToEndpoint(typeof(TestDelayedByCommand), AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)));
