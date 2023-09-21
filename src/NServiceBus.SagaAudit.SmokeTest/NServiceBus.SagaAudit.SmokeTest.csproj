@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="9.0.0-alpha.4" />
+    <PackageReference Include="NServiceBus" Version="9.0.0-alpha.5" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="4.0.0-alpha.1" />
   </ItemGroup>
 
