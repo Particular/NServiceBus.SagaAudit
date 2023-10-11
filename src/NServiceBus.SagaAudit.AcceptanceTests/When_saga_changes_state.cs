@@ -74,7 +74,7 @@
         {
             public Guid Id { get; set; }
 
-            internal List<SagaUpdatedMessage> MessagesReceived { get; } = new List<SagaUpdatedMessage>();
+            internal List<SagaUpdatedMessage> MessagesReceived { get; } = [];
             public bool WasStarted { get; set; }
             public bool TimeoutReceived { get; set; }
             public Guid SagaId { get; set; }
