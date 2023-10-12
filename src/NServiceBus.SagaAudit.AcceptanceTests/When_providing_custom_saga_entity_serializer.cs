@@ -38,7 +38,7 @@
 
         class Context : ScenarioContext
         {
-            internal List<SagaUpdatedMessage> MessagesReceived { get; } = new List<SagaUpdatedMessage>();
+            internal List<SagaUpdatedMessage> MessagesReceived { get; } = [];
         }
 
         class Sender : EndpointConfigurationBuilder
