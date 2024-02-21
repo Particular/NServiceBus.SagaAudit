@@ -22,10 +22,9 @@
                 c.AddSingleton(masters);
                 c.AddSingleton(cancellationSource);
             });
-            busConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
+            busConfiguration.UseSerialization<SystemJsonSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<LearningPersistence>();
-            busConfiguration.SendFailedMessagesTo("error");
             busConfiguration.AuditProcessedMessagesTo("audit");
             busConfiguration.AuditSagaStateChanges("particular.servicecontrol");
 

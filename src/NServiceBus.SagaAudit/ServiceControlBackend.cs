@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Logging;
@@ -10,7 +10,6 @@
     using Performance.TimeToBeReceived;
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using SimpleJson;
     using Transport;
     using Unicast.Transport;
 
@@ -49,7 +48,7 @@
 
         static byte[] Serialize(object messageToSend)
         {
-            return Encoding.UTF8.GetBytes(SimpleJson.SerializeObject(messageToSend, serializerStrategy));
+            return JsonSerializer.SerializeToUtf8Bytes(messageToSend);
         }
 
         public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
@@ -85,7 +84,6 @@ Please ensure that the specified queue is correct.";
         string destinationQueue;
         string localAddress;
 
-        static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
         readonly string sendIntent = MessageIntent.Send.ToString();
     }

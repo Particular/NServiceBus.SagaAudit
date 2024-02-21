@@ -2,13 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using Pipeline;
     using Sagas;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using SimpleJson;
     using Transport;
 
     class CaptureSagaStateBehavior : Behavior<IInvokeHandlerContext>
@@ -16,7 +16,6 @@
         ServiceControlBackend backend;
         Func<object, Dictionary<string, string>> customSagaEntitySerialization;
         string endpointName;
-        static SagaEntitySerializationStrategy sagaEntitySerializationStrategy = new SagaEntitySerializationStrategy();
 
         CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
         {
@@ -58,11 +57,11 @@
             string sagaStateString;
             if (customSagaEntitySerialization != null)
             {
-                sagaStateString = SimpleJson.SerializeObject(customSagaEntitySerialization(saga.Entity));
+                sagaStateString = JsonSerializer.Serialize(customSagaEntitySerialization(saga.Entity));
             }
             else
             {
-                sagaStateString = SimpleJson.SerializeObject(saga.Entity, sagaEntitySerializationStrategy);
+                sagaStateString = JsonSerializer.Serialize(saga.Entity);
             }
 
             var messageType = context.MessageMetadata.MessageType.FullName;
