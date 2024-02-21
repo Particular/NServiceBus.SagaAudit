@@ -23,7 +23,7 @@
 
         async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction, CancellationToken cancellationToken)
         {
-            var body = Serialize(messageToSend);
+            var body = JsonSerializer.SerializeToUtf8Bytes(messageToSend);
 
             var headers = new Dictionary<string, string>
             {
@@ -44,11 +44,6 @@
             {
                 Logger.Warn("Unable to send saga state change infromation to ServiceControl.", ex);
             }
-        }
-
-        static byte[] Serialize(object messageToSend)
-        {
-            return JsonSerializer.SerializeToUtf8Bytes(messageToSend);
         }
 
         public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
