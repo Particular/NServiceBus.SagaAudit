@@ -2,6 +2,7 @@
 {
     using System;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceInsight.Saga;
@@ -30,55 +31,57 @@
             Approver.Verify(serialized);
         }
 
-        //[Test]
-        //public void Saga_entity_compatible_with_serviceinsight()
-        //{
-        //    var entity = new SagaEntity
-        //    {
-        //        IntProperty = 42,
-        //        DateProperty = new DateTime(2017, 10, 26, 13, 3, 13, DateTimeKind.Utc),
-        //        NullableDateProperty = new DateTime(2013, 10, 26, 13, 3, 13, DateTimeKind.Utc),
-        //        GuidProperty = Guid.Empty,
-        //        StringProperty = "String",
-        //        TimeProperty = new TimeSpan(1, 2, 3, 4),
-        //        NullableTimeProperty = new TimeSpan(5, 6, 7, 8),
-        //        NestedObjectProperty = new NestedObject
-        //        {
-        //            IntProperty = 1
-        //        }
-        //    };
-        //    var sagaDataJson = JsonSerializer.Serialize(entity);
+        [Test]
+        public void Saga_entity_compatible_with_serviceinsight()
+        {
+            var entity = new SagaEntity
+            {
+                IntProperty = 42,
+                DateProperty = new DateTime(2017, 10, 26, 13, 3, 13, DateTimeKind.Utc),
+                NullableDateProperty = new DateTime(2013, 10, 26, 13, 3, 13, DateTimeKind.Utc),
+                GuidProperty = Guid.Empty,
+                StringProperty = "String",
+                TimeProperty = new TimeSpan(1, 2, 3, 4),
+                NullableTimeProperty = new TimeSpan(5, 6, 7, 8),
+                NestedObjectProperty = new NestedObject
+                {
+                    IntProperty = 1
+                }
+            };
+            var sagaDataJson = JsonSerializer.Serialize(entity);
 
-        //    var sagaDataProperties = JsonPropertiesHelper.ProcessValues(sagaDataJson);
+            var sagaDataProperties = JsonPropertiesHelper.ProcessValues(sagaDataJson);
 
-        //    var jsonObj = JsonSerializer.De(entity);
+            var jsonObj = JsonSerializer.Deserialize<JsonObject>(sagaDataJson);
 
-        //    Assert.IsNotNull(jsonObj, "SimpleJson.DeserializeObject");
+            Assert.IsNotNull(jsonObj);
 
-        //    foreach (var p in sagaDataProperties)
-        //    {
-        //        Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
+            foreach (var p in sagaDataProperties)
+            {
+                Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
 
-        //        var expected = jsonObj[p.Key].ToString();
-        //        var value = p.Value;
+                var expected = jsonObj[p.Key].ToString();
+                var value = p.Value;
 
-        //        //ServiceInsight uses default ToString() implementation, so adjust for that:
-        //        switch (p.Key)
-        //        {
-        //            case "DateProperty":
-        //            case "NullableDateProperty":
-        //                expected = DateTime.Parse(expected).ToUniversalTime().ToString();
-        //                break;
-        //            case "NestedObjectProperty":
-        //                value = p.Value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
-        //                break;
-        //            default:
-        //                break;
-        //        }
+                //ServiceInsight uses default ToString() implementation, so adjust for that:
+                switch (p.Key)
+                {
+                    case "DateProperty":
+                    case "NullableDateProperty":
+                        expected = DateTime.Parse(expected).ToString();
+                        value = DateTime.Parse(value).ToString();
+                        break;
+                    case "NestedObjectProperty":
+                        value = p.Value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
+                        expected = expected.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
+                        break;
+                    default:
+                        break;
+                }
 
-        //        Assert.AreEqual(expected, value, p.Key);
-        //    }
-        //}
+                Assert.AreEqual(expected, value, p.Key);
+            }
+        }
 
         public class SagaEntityWithNestedObject
         {
@@ -112,13 +115,13 @@ namespace ServiceInsight.Saga
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Newtonsoft.Json;
+    using System.Text.Json;
 
     class JsonPropertiesHelper
     {
-        static readonly IList<string> StandardKeys = new List<string> { "$type", "Id", "Originator", "OriginalMessageId" };
+        static readonly IList<string> StandardKeys = new List<string> { "Id", "Originator", "OriginalMessageId" };
 
-        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
+        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonSerializer.Deserialize<Dictionary<string, object>>(stateAfterChange)
             .Where(m => StandardKeys.All(s => s != m.Key))
             .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
             .ToList();
