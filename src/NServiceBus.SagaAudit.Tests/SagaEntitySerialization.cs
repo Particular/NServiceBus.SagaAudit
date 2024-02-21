@@ -119,7 +119,7 @@ namespace ServiceInsight.Saga
 
     class JsonPropertiesHelper
     {
-        static readonly IList<string> StandardKeys = new List<string> { "Id", "Originator", "OriginalMessageId" };
+        static readonly IList<string> StandardKeys = ["Id", "Originator", "OriginalMessageId"];
 
         public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonSerializer.Deserialize<Dictionary<string, object>>(stateAfterChange)
             .Where(m => StandardKeys.All(s => s != m.Key))
