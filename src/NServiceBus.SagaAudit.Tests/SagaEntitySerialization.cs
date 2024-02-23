@@ -27,7 +27,9 @@
                     IntProperty = 1
                 }
             };
+
             var serialized = JsonSerializer.Serialize(entity);
+
             Approver.Verify(serialized);
         }
 
@@ -60,7 +62,7 @@
             {
                 Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
 
-                var expected = jsonObj[p.Key].ToString();
+                var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key].ToString());
                 var value = p.Value;
 
                 //ServiceInsight uses default ToString() implementation, so adjust for that:
@@ -68,12 +70,10 @@
                 {
                     case "DateProperty":
                     case "NullableDateProperty":
-                        expected = DateTime.Parse(expected).ToString();
-                        value = DateTime.Parse(value).ToString();
+                        expected = DateTime.Parse(expected).ToUniversalTime().ToString();
                         break;
                     case "NestedObjectProperty":
-                        value = p.Value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
-                        expected = expected.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
+                        value = TrimWhitespaceAndNewLines(p.Value);
                         break;
                     default:
                         break;
@@ -81,6 +81,11 @@
 
                 Assert.AreEqual(expected, value, p.Key);
             }
+        }
+
+        string TrimWhitespaceAndNewLines(string value)
+        {
+            return value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty);
         }
 
         public class SagaEntityWithNestedObject
@@ -111,20 +116,21 @@
     }
 }
 
+// This is copied from ServiceInsight to make sure that we are compatible. Note that its using Newtonsoft.Json
 namespace ServiceInsight.Saga
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text.Json;
+    using Newtonsoft.Json;
 
     class JsonPropertiesHelper
     {
-        static readonly IList<string> StandardKeys = ["Id", "Originator", "OriginalMessageId"];
+        static readonly IList<string> StandardKeys = new List<string> { "$type", "Id", "Originator", "OriginalMessageId" };
 
-        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonSerializer.Deserialize<Dictionary<string, object>>(stateAfterChange)
-            .Where(m => StandardKeys.All(s => s != m.Key))
-            .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
-            .ToList();
+        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
+                  .Where(m => StandardKeys.All(s => s != m.Key))
+                  .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
+                  .ToList();
 
         public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
     }
