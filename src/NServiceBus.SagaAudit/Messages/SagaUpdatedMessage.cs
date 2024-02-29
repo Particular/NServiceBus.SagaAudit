@@ -9,7 +9,7 @@
         public string SagaState { get; set; }
         public Guid SagaId { get; set; }
         public SagaChangeInitiator Initiator { get; set; }
-        public List<SagaChangeOutput> ResultingMessages { get; } = [];
+        public List<SagaChangeOutput> ResultingMessages { get; set; } = [];
         public string Endpoint { get; set; }
         public bool IsNew { get; set; }
         public bool IsCompleted { get; set; }

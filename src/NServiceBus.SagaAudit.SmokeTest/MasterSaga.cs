@@ -65,7 +65,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
                     RequestTimeout<MasterTimedOut>(context, DateTimeOffset.UtcNow.AddSeconds(2))
                     );
             }
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task Timeout(MasterTimedOut state, IMessageHandlerContext context)
@@ -84,7 +84,7 @@ namespace NServiceBus.SagaAudit.SmokeTest
         {
             Data.LastWorkRequestedAt = message.RequestedAt;
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task Handle(ChildFinished message, IMessageHandlerContext context)

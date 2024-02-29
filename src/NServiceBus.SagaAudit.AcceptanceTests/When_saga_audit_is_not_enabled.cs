@@ -63,7 +63,7 @@
                 public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -85,7 +85,7 @@
             {
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -101,7 +101,7 @@
                 {
                     testContext.Headers = context.MessageHeaders;
                     testContext.MessageAudited = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

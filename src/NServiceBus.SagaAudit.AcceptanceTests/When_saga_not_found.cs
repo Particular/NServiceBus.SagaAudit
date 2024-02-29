@@ -47,7 +47,7 @@
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     testContext.Received = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -83,7 +83,7 @@
 
                 public Task Handle(MessageToBeAudited message, IMessageHandlerContext context)
                 {
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 public class MyData : ContainSagaData
@@ -110,7 +110,7 @@
                 public Task Handle(object message, IMessageProcessingContext context)
                 {
                     testContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

@@ -66,7 +66,7 @@
                 public Task Handle(StartSaga message, IMessageHandlerContext context)
                 {
                     Data.DataId = message.DataId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
@@ -100,7 +100,7 @@
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessagesReceived.Add(message);
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

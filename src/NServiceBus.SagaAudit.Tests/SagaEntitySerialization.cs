@@ -1,10 +1,11 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceInsight.Saga;
-    using SimpleJson;
 
     [TestFixture]
     public class SagaEntitySerialization
@@ -26,7 +27,9 @@
                     IntProperty = 1
                 }
             };
-            var serialized = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
+
+            var serialized = JsonSerializer.Serialize(entity);
+
             Approver.Verify(serialized);
         }
 
@@ -47,19 +50,19 @@
                     IntProperty = 1
                 }
             };
-            var sagaDataJson = SimpleJson.SerializeObject(entity, new SagaEntitySerializationStrategy());
+            var sagaDataJson = JsonSerializer.Serialize(entity);
 
             var sagaDataProperties = JsonPropertiesHelper.ProcessValues(sagaDataJson);
 
-            var jsonObj = SimpleJson.DeserializeObject(sagaDataJson) as JsonObject;
+            var jsonObj = JsonSerializer.Deserialize<JsonObject>(sagaDataJson);
 
-            Assert.IsNotNull(jsonObj, "SimpleJson.DeserializeObject");
+            Assert.IsNotNull(jsonObj);
 
             foreach (var p in sagaDataProperties)
             {
                 Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
 
-                var expected = jsonObj[p.Key].ToString();
+                var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key].ToString());
                 var value = p.Value;
 
                 //ServiceInsight uses default ToString() implementation, so adjust for that:
@@ -70,7 +73,7 @@
                         expected = DateTime.Parse(expected).ToUniversalTime().ToString();
                         break;
                     case "NestedObjectProperty":
-                        value = p.Value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty).Replace(",NServiceBus", ", NServiceBus");
+                        value = TrimWhitespaceAndNewLines(p.Value);
                         break;
                     default:
                         break;
@@ -80,9 +83,9 @@
             }
         }
 
-        public class SagaEntityWithNestedObject
+        string TrimWhitespaceAndNewLines(string value)
         {
-            public NestedObject NestedObject { get; set; }
+            return value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty);
         }
 
         public class NestedObject
@@ -108,6 +111,7 @@
     }
 }
 
+// This is copied from ServiceInsight to make sure that we are compatible. Note that its using Newtonsoft.Json
 namespace ServiceInsight.Saga
 {
     using System.Collections.Generic;
@@ -116,12 +120,12 @@ namespace ServiceInsight.Saga
 
     class JsonPropertiesHelper
     {
-        static readonly IList<string> StandardKeys = new List<string> { "$type", "Id", "Originator", "OriginalMessageId" };
+        static readonly IList<string> StandardKeys = ["$type", "Id", "Originator", "OriginalMessageId"];
 
         public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
-            .Where(m => StandardKeys.All(s => s != m.Key))
-            .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
-            .ToList();
+                  .Where(m => StandardKeys.All(s => s != m.Key))
+                  .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
+                  .ToList();
 
         public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));
     }

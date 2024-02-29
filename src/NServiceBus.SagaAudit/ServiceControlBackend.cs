@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Logging;
@@ -10,7 +10,6 @@
     using Performance.TimeToBeReceived;
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
-    using SimpleJson;
     using Transport;
     using Unicast.Transport;
 
@@ -24,7 +23,7 @@
 
         async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction, CancellationToken cancellationToken)
         {
-            var body = Serialize(messageToSend);
+            var body = JsonSerializer.SerializeToUtf8Bytes(messageToSend);
 
             var headers = new Dictionary<string, string>
             {
@@ -43,13 +42,8 @@
             }
             catch (Exception ex) when (!ex.IsCausedBy(cancellationToken))
             {
-                Logger.Warn("Unable to send saga state change infromation to ServiceControl.", ex);
+                Logger.Warn("Unable to send saga state change information to ServiceControl.", ex);
             }
-        }
-
-        static byte[] Serialize(object messageToSend)
-        {
-            return Encoding.UTF8.GetBytes(SimpleJson.SerializeObject(messageToSend, serializerStrategy));
         }
 
         public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
@@ -85,7 +79,6 @@ Please ensure that the specified queue is correct.";
         string destinationQueue;
         string localAddress;
 
-        static IJsonSerializerStrategy serializerStrategy = new MessageSerializationStrategy();
         static ILog Logger = LogManager.GetLogger<ServiceControlBackend>();
         readonly string sendIntent = MessageIntent.Send.ToString();
     }
