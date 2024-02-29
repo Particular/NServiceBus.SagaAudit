@@ -136,7 +136,7 @@
                     testContext.CommandHandled = true;
                     testContext.TimeSent = DateTimeOffsetHelper.ToDateTimeOffset(context.MessageHeaders[Headers.TimeSent]);
                     testContext.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -151,7 +151,7 @@
                 public Task Handle(TestDelayedByCommand message, IMessageHandlerContext context)
                 {
                     testContext.DelayedByCommandHandled = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -166,7 +166,7 @@
                 public Task Handle(TestDelayAtCommand message, IMessageHandlerContext context)
                 {
                     testContext.DelayAtCommandHandled = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -181,7 +181,7 @@
                 public Task Handle(TestEvent message, IMessageHandlerContext context)
                 {
                     testContext.EventHandled = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -207,7 +207,7 @@
                 {
                     testContext.SagaUpdateMessageReceived = true;
                     testContext.SagaUpdatedMessage = message;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

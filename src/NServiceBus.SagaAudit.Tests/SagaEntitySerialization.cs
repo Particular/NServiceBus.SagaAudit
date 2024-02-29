@@ -88,11 +88,6 @@
             return value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty);
         }
 
-        public class SagaEntityWithNestedObject
-        {
-            public NestedObject NestedObject { get; set; }
-        }
-
         public class NestedObject
         {
             public int IntProperty { get; set; }

@@ -15,7 +15,7 @@ public class ConfigureEndpointLearningTransport
             Directory.Delete(storageDir, true);
         }
 
-        return Task.FromResult(0);
+        return Task.CompletedTask;
     }
 
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
@@ -41,7 +41,7 @@ public class ConfigureEndpointLearningTransport
 
         configuration.UseTransport(new LearningTransport { StorageDirectory = storageDir });
 
-        return Task.FromResult(0);
+        return Task.CompletedTask;
     }
 
     string storageDir;

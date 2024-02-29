@@ -42,7 +42,7 @@
             }
             catch (Exception ex) when (!ex.IsCausedBy(cancellationToken))
             {
-                Logger.Warn("Unable to send saga state change infromation to ServiceControl.", ex);
+                Logger.Warn("Unable to send saga state change information to ServiceControl.", ex);
             }
         }
 

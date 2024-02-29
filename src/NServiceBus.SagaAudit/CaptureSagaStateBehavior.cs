@@ -49,7 +49,7 @@
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             var saga = activeSagaInstance.Instance;
@@ -116,21 +116,22 @@
                 sagaStateChange = string.Empty;
             }
 
-            var statechange = "Updated";
+            var stateChange = "Updated";
+
             if (sagaInstance.IsNew)
             {
-                statechange = "New";
+                stateChange = "New";
             }
             if (sagaInstance.Instance.Completed)
             {
-                statechange = "Completed";
+                stateChange = "Completed";
             }
 
             if (!string.IsNullOrEmpty(sagaStateChange))
             {
                 sagaStateChange += ";";
             }
-            sagaStateChange += $"{sagaAudit.SagaId}:{statechange}";
+            sagaStateChange += $"{sagaAudit.SagaId}:{stateChange}";
 
             context.Headers[SagaAuditHeaders.SagaStateChange] = sagaStateChange;
         }

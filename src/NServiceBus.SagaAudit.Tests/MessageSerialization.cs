@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
-    using System.Runtime.CompilerServices;
     using System.Text.Json;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -11,7 +10,6 @@
     public class MessageSerialization
     {
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void SagaUpdated_serializes_correctly()
         {
             var entity = new SagaUpdatedMessage

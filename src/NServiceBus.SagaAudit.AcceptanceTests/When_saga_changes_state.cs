@@ -116,7 +116,7 @@
                     MarkAsComplete();
 
                     testContext.TimeoutReceived = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -155,7 +155,7 @@
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessagesReceived.Add(message);
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

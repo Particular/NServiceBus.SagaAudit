@@ -100,14 +100,14 @@
                 {
                     Data.TestRunId = message.Id;
                     testContext.SagaId = Data.Id;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     Data.TestRunId = message.Id;
                     testContext.SagaId = Data.Id;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -128,7 +128,7 @@
                 {
                     Data.TestRunId = message.Id;
                     testContext.AlternativeSagaId = Data.Id;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -156,7 +156,7 @@
             {
                 public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
                 {
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -172,14 +172,14 @@
                 {
                     testContext.MessageAudited = true;
                     testContext.Headers = context.MessageHeaders;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
                 {
                     testContext.MessageAudited = true;
                     testContext.Headers = context.MessageHeaders;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
