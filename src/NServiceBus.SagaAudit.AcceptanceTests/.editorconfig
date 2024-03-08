@@ -9,3 +9,6 @@ dotnet_diagnostic.NSB0002.severity = suggestion
 
 # CancellationToken not supported in tests
 dotnet_diagnostic.PS0013.severity = suggestion
+
+# Justification: Otherwise must bump LangVersion
+ dotnet_diagnostic.IDE0028.severity = none
