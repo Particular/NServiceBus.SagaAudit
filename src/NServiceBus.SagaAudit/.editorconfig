@@ -1,0 +1,4 @@
+[*.cs]
+
+# Justification: Otherwise must bump LangVersion
+ dotnet_diagnostic.IDE0028.severity = none
