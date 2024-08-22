@@ -79,7 +79,7 @@
                         break;
                 }
 
-                Assert.AreEqual(expected, value, p.Key);
+                Assert.That(value, Is.EqualTo(expected), p.Key);
             }
         }
 
