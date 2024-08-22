@@ -41,8 +41,8 @@
             Assert.That(message, Is.Not.Null);
             Assert.That(message.OriginatingEndpoint, Is.Not.Null);
             Assert.That(message.OriginatingMachine, Is.Not.Null);
-            Assert.IsNotEmpty(message.OriginatingEndpoint);
-            Assert.IsNotEmpty(message.OriginatingMachine);
+            Assert.That(message.OriginatingEndpoint, Is.Not.Empty);
+            Assert.That(message.OriginatingMachine, Is.Not.Empty);
             Assert.That(message.IsSagaTimeoutMessage, Is.True);
             Assert.That(message.TimeSent, Is.Not.EqualTo(DateTime.MinValue)); // When SC can handle null TimeSent, then should be asserting to null, instead of checking for minValue
         }
