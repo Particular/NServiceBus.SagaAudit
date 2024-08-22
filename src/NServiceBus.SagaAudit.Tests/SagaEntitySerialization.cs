@@ -56,7 +56,7 @@
 
             var jsonObj = JsonSerializer.Deserialize<JsonObject>(sagaDataJson);
 
-            Assert.IsNotNull(jsonObj);
+            Assert.That(jsonObj, Is.Not.Null);
 
             foreach (var p in sagaDataProperties)
             {

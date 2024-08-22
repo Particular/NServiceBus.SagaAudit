@@ -38,9 +38,9 @@
 
             var message = CaptureSagaStateBehavior.BuildSagaChangeInitiatorMessage(headers, messageId, messageType);
 
-            Assert.IsNotNull(message);
-            Assert.IsNotNull(message.OriginatingEndpoint);
-            Assert.IsNotNull(message.OriginatingMachine);
+            Assert.That(message, Is.Not.Null);
+            Assert.That(message.OriginatingEndpoint, Is.Not.Null);
+            Assert.That(message.OriginatingMachine, Is.Not.Null);
             Assert.IsNotEmpty(message.OriginatingEndpoint);
             Assert.IsNotEmpty(message.OriginatingMachine);
             Assert.That(message.IsSagaTimeoutMessage, Is.True);
