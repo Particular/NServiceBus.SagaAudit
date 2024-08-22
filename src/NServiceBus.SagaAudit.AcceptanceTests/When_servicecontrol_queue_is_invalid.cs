@@ -17,7 +17,7 @@
                 .WithEndpoint<Sender>()
                 .Run());
 
-            StringAssert.Contains("You have enabled saga state change auditing in your endpoint, however, this endpoint is unable to contact the ServiceControl to report endpoint information.", ex.Message);
+            Assert.That(ex.Message, Does.Contain("You have enabled saga state change auditing in your endpoint, however, this endpoint is unable to contact the ServiceControl to report endpoint information."));
         }
 
         class Context : ScenarioContext

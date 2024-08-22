@@ -28,10 +28,10 @@
 
             var command = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestCommand).ToString());
             Assert.IsNotNull(command, "Command messages not single or not found");
-            Assert.AreEqual(MessageIntent.Send.ToString(), command.Intent, "Command intent mismatch");
-            Assert.AreEqual(context.MessageId, command.ResultingMessageId, "MessageId mismatch");
+            Assert.That(command.Intent, Is.EqualTo(MessageIntent.Send.ToString()), "Command intent mismatch");
+            Assert.That(command.ResultingMessageId, Is.EqualTo(context.MessageId), "MessageId mismatch");
             Assert.Less(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), 1d, "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
-            Assert.AreEqual(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint)), command.Destination, "Destination mismatch");
+            Assert.That(command.Destination, Is.EqualTo(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint))), "Destination mismatch");
             Assert.IsNull(command.DeliveryDelay, "Command DeliveryDelay");
             Assert.IsNull(command.DeliveryAt, "Command DeliveryAt");
 
@@ -45,7 +45,7 @@
 
             var @event = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestEvent).ToString());
             Assert.IsNotNull(@event, "Publish not single or not found");
-            Assert.AreEqual(MessageIntent.Publish.ToString(), @event.Intent, "Publish intent mismatch");
+            Assert.That(@event.Intent, Is.EqualTo(MessageIntent.Publish.ToString()), "Publish intent mismatch");
             Assert.IsNull(@event.DeliveryDelay, "Event DeliveryDelay");
             Assert.IsNull(@event.DeliveryAt, "Event DeliveryAt");
             Assert.IsNull(@event.Destination, "Event destination");
