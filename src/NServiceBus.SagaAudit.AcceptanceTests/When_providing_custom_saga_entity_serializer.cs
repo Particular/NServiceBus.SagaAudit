@@ -33,7 +33,7 @@
                 .Run();
 
             var changeMessage = context.MessagesReceived.First(msg => msg?.Initiator?.MessageType == typeof(StartSaga).FullName);
-            Assert.AreEqual($"{{\"MyPropertyName\":\"{contextId:N}\"}}", changeMessage.SagaState);
+            Assert.That(changeMessage.SagaState, Is.EqualTo($"{{\"MyPropertyName\":\"{contextId:N}\"}}"));
         }
 
         class Context : ScenarioContext

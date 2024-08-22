@@ -27,7 +27,7 @@
                 .Run();
 
             Assert.IsTrue(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), "InvokedSagas header is missing");
-            Assert.AreEqual($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}", invokedSagasHeaderValue);
+            Assert.That(invokedSagasHeaderValue, Is.EqualTo($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"));
         }
 
         [Test]

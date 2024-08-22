@@ -19,7 +19,7 @@
 
             var invokedSagas = headers["NServiceBus.InvokedSagas"];
 
-            Assert.AreEqual("NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000;NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000", invokedSagas);
+            Assert.That(invokedSagas, Is.EqualTo("NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000;NServiceBus.SagaAudit.Tests.When_a_message_triggers_multiple_saga_invocations+MySaga:00000000-0000-0000-0000-000000000000"));
         }
 
         class MySaga : Saga<Data>, IAmStartedByMessages<SagaStartMessage>

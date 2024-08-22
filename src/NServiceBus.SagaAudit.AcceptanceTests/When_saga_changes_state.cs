@@ -36,7 +36,7 @@
             var secondSagaChange = context.MessagesReceived.FirstOrDefault(msg => msg?.Initiator?.IsSagaTimeoutMessage ?? false);
 
             //Process Asserts
-            Assert.AreNotEqual(Guid.Empty, context.SagaId, "Saga was not started");
+            Assert.That(context.SagaId, Is.Not.EqualTo(Guid.Empty), "Saga was not started");
             Assert.True(context.TimeoutReceived, "Saga Timeout was not received");
             Assert.NotNull(firstSagaChange, "First Saga Change was not received");
             Assert.NotNull(secondSagaChange, "Second Saga was not received");
@@ -48,14 +48,14 @@
             Assert.IsTrue(context.MessagesReceived.All(m => m.SagaId != Guid.Empty), "Messages with empty SagaId received");
             Assert.IsTrue(context.MessagesReceived.All(m => m.SagaId == context.SagaId), "Messages with incorrect SagaId received");
 
-            Assert.AreEqual(firstSagaChange.Endpoint, "SagaChangesState.Sender", "Endpoint name is not set or incorrect");
+            Assert.That(firstSagaChange.Endpoint, Is.EqualTo("SagaChangesState.Sender"), "Endpoint name is not set or incorrect");
             Assert.True(firstSagaChange.IsNew, "First message is not marked new");
             Assert.False(secondSagaChange.IsNew, "Last message is marked new");
             Assert.False(firstSagaChange.IsCompleted, "First message is marked completed");
             Assert.True(secondSagaChange.IsCompleted, "Last Message is not marked completed");
             Assert.Greater(firstSagaChange.StartTime, DateTime.MinValue, "StartTime is not set");
             Assert.Greater(firstSagaChange.FinishTime, DateTime.MinValue, "FinishTime is not set");
-            Assert.AreEqual(firstSagaChange.SagaType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+Sender+MySaga", "SagaType is not set or incorrect");
+            Assert.That(firstSagaChange.SagaType, Is.EqualTo("NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+Sender+MySaga"), "SagaType is not set or incorrect");
 
             //SagaUpdateMessage.Initiator Asserts
             Assert.True(secondSagaChange.Initiator.IsSagaTimeoutMessage, "Last message initiator is not a timeout");
@@ -66,7 +66,7 @@
             Assert.IsNotEmpty(firstSagaChange.Initiator.OriginatingMachine, "Initiator.OriginatingMachine has not been set");
             Assert.IsNotNull(firstSagaChange.Initiator.OriginatingEndpoint, "Initiator.OriginatingEndpoint has not been set");
             Assert.IsNotEmpty(firstSagaChange.Initiator.OriginatingEndpoint, "Initiator.OriginatingEndpoint has not been set");
-            Assert.AreEqual(firstSagaChange.Initiator.MessageType, "NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+StartSaga", "First message initiator MessageType is incorrect");
+            Assert.That(firstSagaChange.Initiator.MessageType, Is.EqualTo("NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+StartSaga"), "First message initiator MessageType is incorrect");
             Assert.IsNotNull(firstSagaChange.Initiator.TimeSent, "Initiator.TimeSent has not been set");
         }
 

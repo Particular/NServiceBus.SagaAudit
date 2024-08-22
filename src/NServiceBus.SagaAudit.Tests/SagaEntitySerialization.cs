@@ -56,11 +56,11 @@
 
             var jsonObj = JsonSerializer.Deserialize<JsonObject>(sagaDataJson);
 
-            Assert.IsNotNull(jsonObj);
+            Assert.That(jsonObj, Is.Not.Null);
 
             foreach (var p in sagaDataProperties)
             {
-                Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
+                Assert.That(jsonObj.ContainsKey(p.Key), Is.True, $"{p.Key} not found");
 
                 var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key].ToString());
                 var value = p.Value;
@@ -79,7 +79,7 @@
                         break;
                 }
 
-                Assert.AreEqual(expected, value, p.Key);
+                Assert.That(value, Is.EqualTo(expected), p.Key);
             }
         }
 
