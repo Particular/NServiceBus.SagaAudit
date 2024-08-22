@@ -17,8 +17,8 @@
             var message = CaptureSagaStateBehavior.BuildSagaChangeInitiatorMessage(headers, messageId, messageType);
 
             Assert.IsNotNull(message);
-            Assert.IsNull(message.OriginatingEndpoint);
-            Assert.IsNull(message.OriginatingMachine);
+            Assert.That(message.OriginatingEndpoint, Is.Null);
+            Assert.That(message.OriginatingMachine, Is.Null);
             Assert.That(message.IsSagaTimeoutMessage, Is.False);
             Assert.That(message.TimeSent, Is.EqualTo(DateTime.MinValue)); // When SC can handle null TimeSent, then should be asserting to null, instead of checking for minValue
         }
