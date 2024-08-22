@@ -60,7 +60,7 @@
 
             foreach (var p in sagaDataProperties)
             {
-                Assert.IsTrue(jsonObj.ContainsKey(p.Key), $"{p.Key} not found");
+                Assert.That(jsonObj.ContainsKey(p.Key), Is.True, $"{p.Key} not found");
 
                 var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key].ToString());
                 var value = p.Value;
