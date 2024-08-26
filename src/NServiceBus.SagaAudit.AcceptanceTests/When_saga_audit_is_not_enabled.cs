@@ -26,8 +26,8 @@
                 .Done(c => c.MessageAudited)
                 .Run();
 
-            Assert.IsTrue(context.MessageAudited);
-            Assert.IsFalse(context.Headers.ContainsKey("NServiceBus.InvokedSagas"));
+            Assert.That(context.MessageAudited, Is.True);
+            Assert.That(context.Headers.ContainsKey("NServiceBus.InvokedSagas"), Is.False);
         }
 
         class MessageToBeAudited : ICommand

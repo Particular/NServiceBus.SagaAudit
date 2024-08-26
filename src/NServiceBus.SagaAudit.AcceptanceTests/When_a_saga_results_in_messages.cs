@@ -27,28 +27,28 @@
             var sagaupdate = context.SagaUpdatedMessage;
 
             var command = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestCommand).ToString());
-            Assert.IsNotNull(command, "Command messages not single or not found");
+            Assert.That(command, Is.Not.Null, "Command messages not single or not found");
             Assert.That(command.Intent, Is.EqualTo(MessageIntent.Send.ToString()), "Command intent mismatch");
             Assert.That(command.ResultingMessageId, Is.EqualTo(context.MessageId), "MessageId mismatch");
-            Assert.Less(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), 1d, "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
+            Assert.That(Math.Abs((context.TimeSent - command.TimeSent).TotalSeconds), Is.LessThan(1d), "TimeSent mismatch"); //Test within 1 second rounded, since now we have to populate TimeSent with UtcNow as the header is not yet set
             Assert.That(command.Destination, Is.EqualTo(AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(Endpoint))), "Destination mismatch");
-            Assert.IsNull(command.DeliveryDelay, "Command DeliveryDelay");
-            Assert.IsNull(command.DeliveryAt, "Command DeliveryAt");
+            Assert.That(command.DeliveryDelay, Is.Null, "Command DeliveryDelay");
+            Assert.That(command.DeliveryAt, Is.Null, "Command DeliveryAt");
 
             var delayedByCommand = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestDelayedByCommand).ToString());
-            Assert.IsNotNull(delayedByCommand, "Delayed by command message not single or not found");
-            Assert.IsNotNull(delayedByCommand.DeliveryDelay, "Delay by Command");
+            Assert.That(delayedByCommand, Is.Not.Null, "Delayed by command message not single or not found");
+            Assert.That(delayedByCommand.DeliveryDelay, Is.Not.Null, "Delay by Command");
 
             var delayedAtCommand = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestDelayAtCommand).ToString());
-            Assert.IsNotNull(delayedAtCommand, "Delayed at command message not single or not found");
-            Assert.IsNotNull(delayedAtCommand.DeliveryAt, "Delivery At Command");
+            Assert.That(delayedAtCommand, Is.Not.Null, "Delayed at command message not single or not found");
+            Assert.That(delayedAtCommand.DeliveryAt, Is.Not.Null, "Delivery At Command");
 
             var @event = sagaupdate.ResultingMessages.SingleOrDefault(m => m.MessageType == typeof(TestEvent).ToString());
-            Assert.IsNotNull(@event, "Publish not single or not found");
+            Assert.That(@event, Is.Not.Null, "Publish not single or not found");
             Assert.That(@event.Intent, Is.EqualTo(MessageIntent.Publish.ToString()), "Publish intent mismatch");
-            Assert.IsNull(@event.DeliveryDelay, "Event DeliveryDelay");
-            Assert.IsNull(@event.DeliveryAt, "Event DeliveryAt");
-            Assert.IsNull(@event.Destination, "Event destination");
+            Assert.That(@event.DeliveryDelay, Is.Null, "Event DeliveryDelay");
+            Assert.That(@event.DeliveryAt, Is.Null, "Event DeliveryAt");
+            Assert.That(@event.Destination, Is.Null, "Event destination");
         }
 
         class Context : ScenarioContext
