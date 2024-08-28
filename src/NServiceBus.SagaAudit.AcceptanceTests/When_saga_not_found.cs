@@ -23,8 +23,11 @@
                 .Done(c => c.Done)
                 .Run();
 
-            Assert.That(context.Received, Is.False);
-            Assert.That(context.Done, Is.True);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.Received, Is.False);
+                Assert.That(context.Done, Is.True);
+            });
         }
 
         class FakeServiceControl : EndpointConfigurationBuilder

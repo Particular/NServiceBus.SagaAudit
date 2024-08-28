@@ -26,8 +26,11 @@
                 .Done(c => c.MessageAudited)
                 .Run();
 
-            Assert.That(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), Is.True, "InvokedSagas header is missing");
-            Assert.That(invokedSagasHeaderValue, Is.EqualTo($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), Is.True, "InvokedSagas header is missing");
+                Assert.That(invokedSagasHeaderValue, Is.EqualTo($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"));
+            });
         }
 
         [Test]
@@ -44,9 +47,12 @@
                 .Done(c => c.MessageAudited)
                 .Run();
 
-            Assert.That(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), Is.True, "InvokedSagas header is missing");
-            Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), Is.True, "TheEndpointsSaga header value is missing");
-            Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), Is.True, "TheEndpointsSagaAlternative header value is missing");
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), Is.True, "InvokedSagas header is missing");
+                Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), Is.True, "TheEndpointsSaga header value is missing");
+                Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), Is.True, "TheEndpointsSagaAlternative header value is missing");
+            });
         }
 
         class MessageToBeAudited : ICommand
