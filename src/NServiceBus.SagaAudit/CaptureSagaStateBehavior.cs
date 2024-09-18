@@ -83,7 +83,7 @@
             }
             else
             {
-                return JsonSerializer.Serialize(sagaData);
+                return JsonSerializer.Serialize(sagaData, sagaData.GetType());
             }
         }
 
