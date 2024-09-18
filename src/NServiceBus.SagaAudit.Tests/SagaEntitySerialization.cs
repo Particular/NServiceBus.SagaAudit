@@ -28,7 +28,7 @@
                 }
             };
 
-            var serialized = JsonSerializer.Serialize(entity);
+            var serialized = SerializeUsingBehavior(entity);
 
             Approver.Verify(serialized);
         }
@@ -50,7 +50,7 @@
                     IntProperty = 1
                 }
             };
-            var sagaDataJson = JsonSerializer.Serialize(entity);
+            var sagaDataJson = SerializeUsingBehavior(entity);
 
             var sagaDataProperties = JsonPropertiesHelper.ProcessValues(sagaDataJson);
 
@@ -83,6 +83,13 @@
             }
         }
 
+
+        static string SerializeUsingBehavior(IContainSagaData data)
+        {
+            var behavior = new CaptureSagaStateBehavior("FakeEndpointName", null, null);
+            return behavior.SerializeSagaState(data);
+        }
+
         string TrimWhitespaceAndNewLines(string value)
         {
             return value.Replace(Environment.NewLine, string.Empty).Replace(" ", string.Empty);
@@ -93,7 +100,7 @@
             public int IntProperty { get; set; }
         }
 
-        public class SagaEntity
+        public class SagaEntity : ContainSagaData
         {
             public int IntProperty { get; set; }
             public string StringProperty { get; set; }
@@ -105,7 +112,9 @@
             public NestedObject NestedObjectProperty { get; set; }
             public static string StaticProperty { get; set; } = "test";
 #pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable NSB0007 // Saga data property is not writeable
             string PrivateProperty { get; set; } = "test";
+#pragma warning restore NSB0007 // Saga data property is not writeable
 #pragma warning restore IDE0051 // Remove unused private members
         }
     }
