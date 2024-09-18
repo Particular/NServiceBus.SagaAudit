@@ -17,7 +17,7 @@
         Func<object, Dictionary<string, string>> customSagaEntitySerialization;
         string endpointName;
 
-        CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
+        public CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
         {
             this.endpointName = endpointName;
             this.backend = backend;
@@ -54,15 +54,7 @@
 
             var saga = activeSagaInstance.Instance;
 
-            string sagaStateString;
-            if (customSagaEntitySerialization != null)
-            {
-                sagaStateString = JsonSerializer.Serialize(customSagaEntitySerialization(saga.Entity));
-            }
-            else
-            {
-                sagaStateString = JsonSerializer.Serialize(saga.Entity);
-            }
+            string sagaStateString = SerializeSagaState(saga.Entity);
 
             var messageType = context.MessageMetadata.MessageType.FullName;
             var headers = context.MessageHeaders;
@@ -81,6 +73,18 @@
 
             var transportTransaction = context.Extensions.Get<TransportTransaction>();
             return backend.Send(sagaAudit, transportTransaction, context.CancellationToken);
+        }
+
+        internal string SerializeSagaState(IContainSagaData sagaData)
+        {
+            if (customSagaEntitySerialization != null)
+            {
+                return JsonSerializer.Serialize(customSagaEntitySerialization(sagaData));
+            }
+            else
+            {
+                return JsonSerializer.Serialize(sagaData);
+            }
         }
 
         internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType)
