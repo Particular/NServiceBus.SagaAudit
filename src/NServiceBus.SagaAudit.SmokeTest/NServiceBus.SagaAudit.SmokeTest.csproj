@@ -9,8 +9,4 @@
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="9.0.0" />
-  </ItemGroup>
-
 </Project>
