@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,10 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="9.1.0" />
   </ItemGroup>
 
 </Project>
