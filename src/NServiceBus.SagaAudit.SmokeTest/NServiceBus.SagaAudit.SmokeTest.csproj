@@ -1,17 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net481</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.SagaAudit\NServiceBus.SagaAudit.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="8.0.0" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="3.0.0" />
   </ItemGroup>
 
 </Project>
