@@ -8,25 +8,11 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public DefaultServer()
-        {
-            typesToInclude = [];
-        }
-
-        public DefaultServer(List<Type> typesToInclude)
-        {
-            this.typesToInclude = typesToInclude;
-        }
-
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
-            var types = endpointConfiguration.GetTypesScopedByTestClass();
-
-            typesToInclude.AddRange(types);
-
             var configuration = new EndpointConfiguration(endpointConfiguration.EndpointName);
 
-            configuration.TypesToIncludeInScan(typesToInclude);
+            configuration.ScanTypesForTest(endpointConfiguration);
             configuration.EnableInstallers();
 
             var recoverability = configuration.Recoverability();
@@ -44,7 +30,5 @@
 
             return configuration;
         }
-
-        List<Type> typesToInclude;
     }
 }
