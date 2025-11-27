@@ -1,10 +1,9 @@
-﻿namespace NServiceBus.AcceptanceTests
-{
-    using Configuration.AdvancedExtensibility;
+﻿namespace NServiceBus.AcceptanceTests;
 
-    public static class EndpointConfigurationExtensions
-    {
-        public static RoutingSettings ConfigureRouting(this EndpointConfiguration configuration) =>
-            new RoutingSettings(configuration.GetSettings());
-    }
+using Configuration.AdvancedExtensibility;
+
+public static class EndpointConfigurationExtensions
+{
+    public static RoutingSettings ConfigureRouting(this EndpointConfiguration configuration) =>
+        new RoutingSettings(configuration.GetSettings());
 }
