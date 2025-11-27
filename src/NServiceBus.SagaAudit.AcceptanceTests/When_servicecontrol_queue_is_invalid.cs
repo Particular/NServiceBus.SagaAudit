@@ -41,7 +41,8 @@
 
             protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
             {
-                mapper.ConfigureMapping<MyMessage>(m => m.CorrelationId).ToSaga(s => s.CorrelationId);
+                mapper.MapSaga(s => s.CorrelationId)
+                    .ToMessage<MyMessage>(m => m.CorrelationId);
             }
 
             public Task Handle(MyMessage message, IMessageHandlerContext context)

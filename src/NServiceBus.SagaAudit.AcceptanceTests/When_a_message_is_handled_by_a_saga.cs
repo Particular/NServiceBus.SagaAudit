@@ -127,7 +127,8 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<TheEndpointsSagaAlternativeData> mapper)
                 {
-                    mapper.ConfigureMapping<MessageToBeAuditedByMultiple>(msg => msg.Id).ToSaga(saga => saga.TestRunId);
+                    mapper.MapSaga(saga => saga.TestRunId)
+                        .ToMessage<MessageToBeAuditedByMultiple>(msg => msg.Id);
                 }
 
                 public Task Handle(MessageToBeAuditedByMultiple message, IMessageHandlerContext context)
