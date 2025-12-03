@@ -80,13 +80,17 @@ public class When_saga_not_found : NServiceBusAcceptanceTest
                 public virtual Guid MessageId { get; set; }
             }
 
-            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MyData> mapper) =>
+            protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MyData> mapper)
+            {
                 mapper.MapSaga(s => s.MessageId)
                     .ToMessage<NotSent>(message => message.MessageId)
                     .ToMessage<MessageToBeAudited>(message => message.MessageId);
+
+                mapper.ConfigureNotFoundHandler<SagaNotFound>();
+            }
         }
 
-        public class SagaNotFound(Context testContext) : IHandleSagaNotFound
+        public class SagaNotFound(Context testContext) : ISagaNotFoundHandler
         {
             public Task Handle(object message, IMessageProcessingContext context)
             {
