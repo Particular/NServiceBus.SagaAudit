@@ -1,6 +1,6 @@
 # NServiceBus.SagaAudit
 
-NServiceBus.SagaAudit enables audit of saga state changes for NServiceBus endpoints to facilitate the SagaView state change diagram in ServiceInsight.
+NServiceBus.SagaAudit enables audit of saga state changes for NServiceBus endpoints to facilitate the [SagaView](https://docs.particular.net/servicepulse/saga-diagram) state change diagram in ServicePulse.
 
 It is part of the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems.
 
