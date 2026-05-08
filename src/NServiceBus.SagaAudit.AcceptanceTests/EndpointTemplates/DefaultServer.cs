@@ -21,8 +21,6 @@ public class DefaultServer : IEndpointSetupTemplate
 
         await configuration.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
-        runDescriptor.Services.AddScenarioContext(runDescriptor.ScenarioContext);
-
         await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
         await configurationBuilderCustomization(configuration);
