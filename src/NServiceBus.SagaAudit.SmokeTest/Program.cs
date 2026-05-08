@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
 
     class Program
@@ -16,12 +17,11 @@
             var masters = new ConcurrentDictionary<Guid, bool>();
             var cancellationSource = new CancellationTokenSource();
 
+            var builder = Host.CreateApplicationBuilder();
+            builder.Services.AddSingleton(masters);
+            builder.Services.AddSingleton(cancellationSource);
+
             var busConfiguration = new EndpointConfiguration("NServiceBus.SagaAudit.SmokeTest");
-            busConfiguration.RegisterComponents(c =>
-            {
-                c.AddSingleton(masters);
-                c.AddSingleton(cancellationSource);
-            });
             busConfiguration.UseSerialization<SystemJsonSerializer>();
             busConfiguration.EnableInstallers();
             busConfiguration.UsePersistence<LearningPersistence>();
@@ -31,9 +31,11 @@
             var routing = busConfiguration.UseTransport(new LearningTransport());
             routing.RouteToEndpoint(typeof(Program).Assembly, "NServiceBus.SagaAudit.SmokeTest");
 
-            var endpoint = await Endpoint.Start(busConfiguration);
-
             var token = cancellationSource.Token;
+
+            var host = builder.Build();
+            await host.StartAsync(token);
+            var messageSession = host.Services.GetRequiredService<IMessageSession>();
 
             try
             {
@@ -51,7 +53,7 @@
                     {
                         Identifier = masterId
                     };
-                    await Task.WhenAll(endpoint.SendLocal(startMasterAlpha), endpoint.SendLocal(startMasterBeta));
+                    await Task.WhenAll(messageSession.SendLocal(startMasterAlpha), messageSession.SendLocal(startMasterBeta));
                 }
                 do
                 {
@@ -67,7 +69,7 @@
             }
             finally
             {
-                await endpoint.Stop();
+                await host.StopAsync();
                 Console.WriteLine("Smoke test completed. Press any key to exit.");
                 Console.ReadKey();
             }
