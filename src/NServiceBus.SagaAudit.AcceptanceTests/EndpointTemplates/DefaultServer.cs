@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates;
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AcceptanceTesting.Customization;
 using AcceptanceTesting.Support;
@@ -21,8 +20,6 @@ public class DefaultServer : IEndpointSetupTemplate
         configuration.UseSerialization<SystemJsonSerializer>();
 
         await configuration.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-
-        configuration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
         await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 

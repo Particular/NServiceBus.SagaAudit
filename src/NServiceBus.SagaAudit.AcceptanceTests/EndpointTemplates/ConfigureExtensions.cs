@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using AcceptanceTesting.Support;
-using Microsoft.Extensions.DependencyInjection;
 
 public static class ConfigureExtensions
 {
@@ -18,17 +17,5 @@ public static class ConfigureExtensions
         var persistenceConfiguration = new ConfigureEndpointLearningPersistence();
         await persistenceConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, config, runDescriptor.Settings, endpointCustomizationConfiguration.PublisherMetadata);
         runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
-    }
-
-    public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor) => builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
-
-    static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor, IServiceCollection sc)
-    {
-        var type = runDescriptor.ScenarioContext.GetType();
-        while (type != typeof(object))
-        {
-            sc.AddSingleton(type, runDescriptor.ScenarioContext);
-            type = type.BaseType;
-        }
     }
 }
