@@ -15,7 +15,7 @@ public abstract partial class NServiceBusAcceptanceTest
     public void SetUp() =>
         Conventions.EndpointNamingConvention = t =>
         {
-            var classAndEndpoint = t.FullName.Split('.').Last();
+            var classAndEndpoint = t.FullName!.Split('.').Last();
 
             var testName = classAndEndpoint.Split('+').First();
 

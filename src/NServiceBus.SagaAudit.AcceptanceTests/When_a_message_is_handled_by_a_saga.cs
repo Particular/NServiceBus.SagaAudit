@@ -44,7 +44,7 @@ public class When_a_message_is_handled_by_a_saga : NServiceBusAcceptanceTest
         Assert.Multiple(() =>
         {
             Assert.That(context.Headers.TryGetValue("NServiceBus.InvokedSagas", out var invokedSagasHeaderValue), Is.True, "InvokedSagas header is missing");
-            Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), Is.True, "TheEndpointsSaga header value is missing");
+            Assert.That(invokedSagasHeaderValue!.Contains($"{typeof(EndpointWithASaga.TheEndpointsSaga).FullName}:{context.SagaId}"), Is.True, "TheEndpointsSaga header value is missing");
             Assert.That(invokedSagasHeaderValue.Contains($"{typeof(EndpointWithASaga.TheEndpointsSagaAlternative).FullName}:{context.AlternativeSagaId}"), Is.True, "TheEndpointsSagaAlternative header value is missing");
         });
     }
@@ -62,7 +62,7 @@ public class When_a_message_is_handled_by_a_saga : NServiceBusAcceptanceTest
     class Context : ScenarioContext
     {
         public bool MessageAudited { get; set; }
-        public IReadOnlyDictionary<string, string> Headers { get; set; }
+        public IReadOnlyDictionary<string, string> Headers { get; set; } = null!;
         public Guid SagaId { get; set; }
         public Guid AlternativeSagaId { get; set; }
     }

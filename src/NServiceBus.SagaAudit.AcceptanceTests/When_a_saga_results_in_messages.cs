@@ -61,9 +61,9 @@ class When_a_saga_results_in_messages
         public bool CommandHandled { get; set; }
         public bool EventHandled { get; set; }
         public bool SagaUpdateMessageReceived { get; set; }
-        public SagaUpdatedMessage SagaUpdatedMessage { get; set; }
+        public SagaUpdatedMessage SagaUpdatedMessage { get; set; } = null!;
         public DateTimeOffset TimeSent { get; set; }
-        public string MessageId { get; set; }
+        public string MessageId { get; set; } = null!;
         public bool DelayedByCommandHandled { get; set; }
         public bool DelayAtCommandHandled { get; set; }
     }

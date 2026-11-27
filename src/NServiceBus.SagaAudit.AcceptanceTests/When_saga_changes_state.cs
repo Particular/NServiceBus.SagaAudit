@@ -60,7 +60,7 @@ public class When_saga_changes_state : NServiceBusAcceptanceTest
             Assert.That(firstSagaChange.SagaType, Is.EqualTo("NServiceBus.SagaAudit.AcceptanceTests.When_saga_changes_state+Sender+MySaga"), "SagaType is not set or incorrect");
 
             //SagaUpdateMessage.Initiator Asserts
-            Assert.That(secondSagaChange.Initiator.IsSagaTimeoutMessage, Is.True, "Last message initiator is not a timeout");
+            Assert.That(secondSagaChange.Initiator!.IsSagaTimeoutMessage, Is.True, "Last message initiator is not a timeout");
             Assert.That(firstSagaChange.Initiator, Is.Not.Null, "Initiator has not been set");
         });
         Assert.Multiple(() =>

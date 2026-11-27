@@ -25,14 +25,14 @@
                 return;
             }
 
-            if (!context.Extensions.TryGet(out SagaUpdatedMessage sagaUpdatedMessage))
+            if (!context.Extensions.TryGet(out SagaUpdatedMessage? sagaUpdatedMessage))
             {
                 return;
             }
 
             TimeSpan? deliveryDelay = null;
             DateTimeOffset? doNotDeliverBefore = null;
-            if (context.Extensions.TryGet(out DispatchProperties properties))
+            if (context.Extensions.TryGet(out DispatchProperties? properties))
             {
                 deliveryDelay = properties.DelayDeliveryWith?.Delay;
                 doNotDeliverBefore = properties.DoNotDeliverBefore?.At;
@@ -51,7 +51,7 @@
             sagaUpdatedMessage.ResultingMessages.Add(sagaResultingMessage);
         }
 
-        static string GetDestinationForUnicastMessages(IOutgoingLogicalMessageContext context)
+        static string? GetDestinationForUnicastMessages(IOutgoingLogicalMessageContext context)
         {
             var sendAddressTags = context.RoutingStrategies.OfType<UnicastRoutingStrategy>()
                 .Select(urs => urs.Apply(context.Headers)).Cast<UnicastAddressTag>().ToList();

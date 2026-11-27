@@ -42,5 +42,5 @@ public class ConfigureEndpointLearningPersistence
         return Task.CompletedTask;
     }
 
-    string storageDir;
+    string? storageDir;
 }

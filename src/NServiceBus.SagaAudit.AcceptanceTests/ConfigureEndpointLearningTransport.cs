@@ -44,5 +44,5 @@ public class ConfigureEndpointLearningTransport
         return Task.CompletedTask;
     }
 
-    string storageDir;
+    string? storageDir;
 }

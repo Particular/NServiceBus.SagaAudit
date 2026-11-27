@@ -49,7 +49,7 @@ public class When_processing_is_retried_after_a_saga_was_invoked : NServiceBusAc
         int processingAttempts;
         public Guid SagaId { get; set; }
         public int TimesHandledBySagaData { get; set; }
-        public IReadOnlyDictionary<string, string> AuditedHeaders { get; set; }
+        public IReadOnlyDictionary<string, string> AuditedHeaders { get; set; } = null!;
     }
 
     class EndpointWithSaga : EndpointConfigurationBuilder

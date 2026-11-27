@@ -62,7 +62,7 @@
             {
                 Assert.That(jsonObj.ContainsKey(p.Key), Is.True, $"{p.Key} not found");
 
-                var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key].ToString());
+                var expected = TrimWhitespaceAndNewLines(jsonObj[p.Key]!.ToString());
                 var value = p.Value;
 
                 //ServiceInsight uses default ToString() implementation, so adjust for that:
@@ -86,7 +86,7 @@
 
         static string SerializeUsingBehavior(IContainSagaData data)
         {
-            var behavior = new CaptureSagaStateBehavior("FakeEndpointName", null, null);
+            var behavior = new CaptureSagaStateBehavior("FakeEndpointName", null!, null);
             return behavior.SerializeSagaState(data);
         }
 
@@ -103,13 +103,13 @@
         public class SagaEntity : ContainSagaData
         {
             public int IntProperty { get; set; }
-            public string StringProperty { get; set; }
+            public string StringProperty { get; set; } = null!;
             public Guid GuidProperty { get; set; }
             public DateTime DateProperty { get; set; }
             public DateTime? NullableDateProperty { get; set; }
             public TimeSpan TimeProperty { get; set; }
             public TimeSpan? NullableTimeProperty { get; set; }
-            public NestedObject NestedObjectProperty { get; set; }
+            public NestedObject NestedObjectProperty { get; set; } = null!;
             public static string StaticProperty { get; set; } = "test";
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable NSB0007 // Saga data property is not writeable
@@ -131,9 +131,9 @@ namespace ServiceInsight.Saga
     {
         static readonly IList<string> StandardKeys = ["$type", "Id", "Originator", "OriginalMessageId"];
 
-        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)
+        public static IList<KeyValuePair<string, string>> ProcessValues(string stateAfterChange) => JsonConvert.DeserializeObject<Dictionary<string, object>>(stateAfterChange)!
                   .Where(m => StandardKeys.All(s => s != m.Key))
-                  .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()))
+                  .Select(f => new KeyValuePair<string, string>(f.Key, f.Value?.ToString()!))
                   .ToList();
 
         public static IList<KeyValuePair<string, string>> ProcessArray(string stateAfterChange) => ProcessValues(stateAfterChange.TrimStart('[').TrimEnd(']'));

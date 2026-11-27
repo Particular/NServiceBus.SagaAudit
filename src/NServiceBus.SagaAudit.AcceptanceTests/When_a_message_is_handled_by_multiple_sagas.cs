@@ -59,8 +59,8 @@ public class When_a_message_is_handled_by_multiple_sagas : NServiceBusAcceptance
         public int SagaUpdatesReceived => sagaUpdatesReceived;
         public void SagaUpdateReceived() => Interlocked.Increment(ref sagaUpdatesReceived);
         int sagaUpdatesReceived;
-        public IReadOnlyDictionary<string, string> AuditedHeaders { get; set; }
-        public IReadOnlyDictionary<string, string> HeadersSeenAfterHandlers { get; set; }
+        public IReadOnlyDictionary<string, string> AuditedHeaders { get; set; } = null!;
+        public IReadOnlyDictionary<string, string> HeadersSeenAfterHandlers { get; set; } = null!;
     }
 
     class EndpointWithSagas : EndpointConfigurationBuilder
