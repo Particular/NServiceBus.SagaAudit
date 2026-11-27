@@ -1,7 +1,7 @@
 ﻿namespace NServiceBus.SagaAudit.Tests
 {
     using System;
-    using System.Text.Json;
+    using System.Text;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
@@ -47,7 +47,7 @@
                 StartTime = new DateTime(2017, 10, 30, 9, 22, 17, DateTimeKind.Utc)
             };
 
-            var serialized = JsonSerializer.Serialize(entity);
+            var serialized = Encoding.UTF8.GetString(ServiceControlBackend.Serialize(entity));
             Approver.Verify(serialized);
         }
     }

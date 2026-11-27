@@ -2,8 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Logging;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using SagaAudit;
@@ -21,10 +24,31 @@
         {
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
             var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>?>(SettingsKeys.CustomSerialization);
+            var serializerOptions = context.Settings.GetOrDefault<JsonSerializerOptions?>(SettingsKeys.SerializerOptions);
+            var sagaStateSerializer = new SagaStateSerializer(serializerOptions);
+
+            if (customSagaEntitySerialization is null)
+            {
+                var sagaDataTypes = context.Settings.Get<NServiceBus.Sagas.SagaMetadataCollection>().Select(saga => saga.SagaEntityType);
+                var problems = SagaStateShapeCheck.FindProblems(sagaDataTypes, sagaStateSerializer).ToList();
+
+                // Only the serializer options overload can fail startup, so upgrading cannot stop an endpoint that runs today
+                var failStartup = serializerOptions is not null;
+                foreach (var problem in problems.Where(problem => !failStartup || !problem.PreventsSerialization))
+                {
+                    Logger.Warn(problem.Message);
+                }
+
+                var serializationFailures = problems.Where(problem => failStartup && problem.PreventsSerialization).Select(problem => problem.Message).ToList();
+                if (serializationFailures.Count > 0)
+                {
+                    throw new InvalidOperationException(string.Join(Environment.NewLine, serializationFailures));
+                }
+            }
 
             context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");
-            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization));
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization, sagaStateSerializer));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditSagaMetadataBehavior(), "Adds saga information to audit messages");
 
@@ -52,5 +76,7 @@
                 return Task.CompletedTask;
             }
         }
+
+        static readonly ILog Logger = LogManager.GetLogger<SagaAuditFeature>();
     }
 }
