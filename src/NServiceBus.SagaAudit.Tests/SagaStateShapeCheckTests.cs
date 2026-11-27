@@ -19,19 +19,33 @@ namespace NServiceBus.SagaAudit.Tests
             Assert.That(FindProblemMessages([typeof(PlainSagaData)], ShapeCheckSagaDataJsonContext.Default.Options), Is.Empty);
 
         [Test]
-        public void Should_report_saga_data_that_a_converter_in_the_options_writes_as_a_non_object()
+        public void Should_report_that_the_shape_cannot_be_verified_for_a_converter_in_the_options()
         {
             var options = new JsonSerializerOptions { Converters = { new WriteAsStringConverter() } };
 
             var problems = FindProblemMessages([typeof(PlainSagaData)], options).ToList();
 
             Assert.That(problems, Has.Count.EqualTo(1));
-            Assert.That(problems[0], Does.Contain(typeof(PlainSagaData).FullName).And.Contain("does not serialize as a JSON object"));
+            Assert.That(problems[0], Does.Contain(typeof(PlainSagaData).FullName).And.Contain("cannot be verified"));
         }
 
         [Test]
-        public void Should_report_saga_data_with_a_converter_attribute() =>
-            Assert.That(FindProblemMessages([typeof(SagaDataWithTypeLevelConverter)], null).Single(), Does.Contain("does not serialize as a JSON object"));
+        public void Should_report_that_the_shape_cannot_be_verified_for_a_converter_attribute() =>
+            Assert.That(FindProblemMessages([typeof(SagaDataWithTypeLevelConverter)], null).Single(), Does.Contain("cannot be verified"));
+
+        [Test]
+        public void Should_not_claim_that_an_object_writing_converter_writes_a_non_object()
+        {
+            var options = new JsonSerializerOptions { Converters = { new WriteAsObjectConverter() } };
+
+            var problem = FindProblemMessages([typeof(PlainSagaData)], options).Single();
+
+            Assert.That(problem, Does.Contain("check that the converter writes one").And.Not.Contain("array"));
+        }
+
+        [Test]
+        public void Should_report_saga_data_that_serializes_as_an_array() =>
+            Assert.That(FindProblemMessages([typeof(EnumerableSagaData)], null).Single(), Does.Contain("serializes as a JSON array"));
 
         [Test]
         public void Should_report_saga_data_without_metadata_in_the_serializer_options() =>
@@ -82,13 +96,13 @@ namespace NServiceBus.SagaAudit.Tests
         public void Should_flag_only_serialization_failures_as_preventing_serialization()
         {
             var missing = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], new SagaStateSerializer(ShapeCheckOtherJsonContext.Default.Options)).Single();
-            var notAnObject = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], new SagaStateSerializer(null)).Single();
+            var unverifiedShape = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], new SagaStateSerializer(null)).Single();
             var renamed = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], new SagaStateSerializer(null)).Single();
 
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(missing.PreventsSerialization, Is.True);
-                Assert.That(notAnObject.PreventsSerialization, Is.False);
+                Assert.That(unverifiedShape.PreventsSerialization, Is.False);
                 Assert.That(renamed.PreventsSerialization, Is.False);
             }
         }
@@ -115,6 +129,27 @@ namespace NServiceBus.SagaAudit.Tests
 
         [JsonConverter(typeof(WriteAsStringConverter))]
         public class SagaDataWithTypeLevelConverter : ContainSagaData;
+
+        public class EnumerableSagaData : ContainSagaData, IEnumerable<int>
+        {
+            public IEnumerator<int> GetEnumerator() => Enumerable.Empty<int>().GetEnumerator();
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        class WriteAsObjectConverter : JsonConverter<ContainSagaData>
+        {
+            public override bool CanConvert(Type typeToConvert) => typeof(ContainSagaData).IsAssignableFrom(typeToConvert);
+
+            public override ContainSagaData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => throw new NotSupportedException();
+
+            public override void Write(Utf8JsonWriter writer, ContainSagaData value, JsonSerializerOptions options)
+            {
+                writer.WriteStartObject();
+                writer.WriteString(nameof(ContainSagaData.Id), value.Id);
+                writer.WriteEndObject();
+            }
+        }
 
         class WriteAsStringConverter : JsonConverter<ContainSagaData>
         {

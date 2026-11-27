@@ -26,11 +26,15 @@ namespace NServiceBus.SagaAudit
                 {
                     yield return new SagaStateProblem(true, $"The saga state of the saga data type '{sagaDataType.FullName}' cannot be serialized, so processing messages for that saga fails. {resolutionFailure?.Message}");
                 }
-                else if (typeInfo.Kind != JsonTypeInfoKind.Object)
+                else if (typeInfo.Kind == JsonTypeInfoKind.Enumerable)
                 {
-                    yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' does not serialize as a JSON object (metadata kind '{typeInfo.Kind}'), for example because a custom converter handles it. ServicePulse only displays saga state that is a JSON object.");
+                    yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' serializes as a JSON array. ServicePulse only displays saga state that is a JSON object.");
                 }
-                else if (FindRenamedStandardProperties(typeInfo) is { Length: > 0 } renamed)
+                else if (typeInfo.Kind == JsonTypeInfoKind.None)
+                {
+                    yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' is serialized by a custom converter, so the shape of its saga state cannot be verified at startup. ServicePulse only displays saga state that is a JSON object; check that the converter writes one.");
+                }
+                else if (typeInfo.Kind == JsonTypeInfoKind.Object && FindRenamedStandardProperties(typeInfo) is { Length: > 0 } renamed)
                 {
                     yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' writes {string.Join(", ", renamed)}. ServicePulse hides the standard saga data properties only under their declared names, so it shows them as part of the saga state.");
                 }

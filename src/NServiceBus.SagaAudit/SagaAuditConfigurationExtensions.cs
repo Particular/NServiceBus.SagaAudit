@@ -42,7 +42,7 @@
         /// <para>
         /// ServicePulse expects each saga data type to serialize as a JSON object whose property names match the property names declared on the type.
         /// Avoid converters that write saga data in another shape and naming policies that rename properties.
-        /// The endpoint logs a warning at startup for saga data types that do not serialize as a JSON object, or that write <c>Id</c>, <c>Originator</c>, or <c>OriginalMessageId</c> under another name.
+        /// The endpoint logs a warning at startup for saga data types that serialize as a JSON array, that a custom converter serializes because their shape cannot be verified, or that write <c>Id</c>, <c>Originator</c>, or <c>OriginalMessageId</c> under another name.
         /// </para>
         /// <para>
         /// When trimming or Native AOT is enabled, set <see cref="JsonSerializerOptions.TypeInfoResolver"/> to provide metadata for every saga data type, for example with a source-generated context that lists them.
