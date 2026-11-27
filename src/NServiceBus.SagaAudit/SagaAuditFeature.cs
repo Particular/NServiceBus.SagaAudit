@@ -26,7 +26,7 @@
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");
             context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
-            context.Pipeline.Register("AuditSagaMetadata", new AuditSagaMetadataBehavior(), "Adds saga information to audit messages");
+            context.Pipeline.Register("AuditInvokedSaga", new AuditSagaMetadataBehavior(), "Adds saga information to audit messages");
 
             context.RegisterStartupTask(b => new SagaAuditStartupTask(b.GetRequiredService<ServiceControlBackend>(), b.GetRequiredService<IMessageDispatcher>()));
         }
