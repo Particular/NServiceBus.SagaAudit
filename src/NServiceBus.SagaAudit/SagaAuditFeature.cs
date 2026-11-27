@@ -2,9 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Logging;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using SagaAudit;
@@ -23,6 +25,15 @@
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
             var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>?>(SettingsKeys.CustomSerialization);
             var serializerOptions = context.Settings.GetOrDefault<JsonSerializerOptions?>(SettingsKeys.SerializerOptions);
+
+            if (customSagaEntitySerialization is null)
+            {
+                var sagaDataTypes = context.Settings.Get<NServiceBus.Sagas.SagaMetadataCollection>().Select(saga => saga.SagaEntityType);
+                foreach (var problem in SagaStateShapeCheck.FindProblems(sagaDataTypes, serializerOptions))
+                {
+                    Logger.Warn(problem);
+                }
+            }
 
             context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");
@@ -54,5 +65,7 @@
                 return Task.CompletedTask;
             }
         }
+
+        static readonly ILog Logger = LogManager.GetLogger<SagaAuditFeature>();
     }
 }
