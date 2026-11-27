@@ -11,7 +11,7 @@
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using Transport;
 
-    class CaptureSagaStateBehavior : Behavior<IInvokeHandlerContext>
+    sealed class CaptureSagaStateBehavior : IBehavior<IInvokeHandlerContext, IInvokeHandlerContext>
     {
         ServiceControlBackend backend;
         Func<object, Dictionary<string, string>> customSagaEntitySerialization;
@@ -24,22 +24,37 @@
             this.customSagaEntitySerialization = customSagaEntitySerialization;
         }
 
-        public override async Task Invoke(IInvokeHandlerContext context, Func<Task> next)
+        public Task Invoke(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
+        {
+            if (context.MessageHandler.Instance is not Saga)
+            {
+                return next(context);
+            }
+
+            return InvokeSagaHandler(context, next);
+        }
+
+        async Task InvokeSagaHandler(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
         {
             var sagaAudit = new SagaUpdatedMessage();
 
             context.Extensions.Set(sagaAudit);
 
-            await next().ConfigureAwait(false);
+            await next(context).ConfigureAwait(false);
 
             if (!context.Extensions.TryGet(out ActiveSagaInstance activeSagaInstance))
             {
                 return; // Message was not handled by the saga
             }
 
-            if (activeSagaInstance.Instance.Entity == null)
+            if (activeSagaInstance.Instance.Entity is null)
             {
                 return; // Message was not handled by the saga
+            }
+
+            if (context.Extensions.TryGet<SagaAuditState>(out var auditState))
+            {
+                auditState.AddInvokedSaga(activeSagaInstance.Instance.GetType().FullName, activeSagaInstance.Instance.Entity.Id);
             }
 
             await AuditSaga(activeSagaInstance, sagaAudit, context).ConfigureAwait(false);
@@ -77,7 +92,7 @@
 
         internal string SerializeSagaState(IContainSagaData sagaData)
         {
-            if (customSagaEntitySerialization != null)
+            if (customSagaEntitySerialization is not null)
             {
                 return JsonSerializer.Serialize(customSagaEntitySerialization(sagaData));
             }
@@ -115,11 +130,6 @@
 
         static void AssignSagaStateChangeCausedByMessage(IInvokeHandlerContext context, ActiveSagaInstance sagaInstance, SagaUpdatedMessage sagaAudit)
         {
-            if (!context.MessageHeaders.TryGetValue(SagaAuditHeaders.SagaStateChange, out var sagaStateChange))
-            {
-                sagaStateChange = string.Empty;
-            }
-
             var stateChange = "Updated";
 
             if (sagaInstance.IsNew)
@@ -131,13 +141,10 @@
                 stateChange = "Completed";
             }
 
-            if (!string.IsNullOrEmpty(sagaStateChange))
+            if (context.Extensions.TryGet<SagaAuditState>(out var auditState))
             {
-                sagaStateChange += ";";
+                auditState.AddSagaStateChange(sagaAudit.SagaId, stateChange);
             }
-            sagaStateChange += $"{sagaAudit.SagaId}:{stateChange}";
-
-            context.Headers[SagaAuditHeaders.SagaStateChange] = sagaStateChange;
         }
 
         public class CaptureSagaStateRegistration : RegisterStep

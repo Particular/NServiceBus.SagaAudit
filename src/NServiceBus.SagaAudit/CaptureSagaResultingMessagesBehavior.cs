@@ -8,18 +8,18 @@
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
-    class CaptureSagaResultingMessagesBehavior : Behavior<IOutgoingLogicalMessageContext>
+    sealed class CaptureSagaResultingMessagesBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
-        public override Task Invoke(IOutgoingLogicalMessageContext context, Func<Task> next)
+        public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
         {
             AppendMessageToState(context);
-            return next();
+            return next(context);
         }
 
         void AppendMessageToState(IOutgoingLogicalMessageContext context)
         {
             var logicalMessage = context.Message;
-            if (logicalMessage == null)
+            if (logicalMessage is null)
             {
                 //this can happen on control messages
                 return;
