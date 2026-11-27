@@ -14,10 +14,10 @@
     sealed class CaptureSagaStateBehavior : IBehavior<IInvokeHandlerContext, IInvokeHandlerContext>
     {
         ServiceControlBackend backend;
-        Func<object, Dictionary<string, string>> customSagaEntitySerialization;
+        Func<object, Dictionary<string, string>>? customSagaEntitySerialization;
         string endpointName;
 
-        public CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
+        public CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>>? customSagaEntitySerialization)
         {
             this.endpointName = endpointName;
             this.backend = backend;
@@ -42,7 +42,7 @@
 
             await next(context).ConfigureAwait(false);
 
-            if (!context.Extensions.TryGet(out ActiveSagaInstance activeSagaInstance))
+            if (!context.Extensions.TryGet(out ActiveSagaInstance? activeSagaInstance))
             {
                 return; // Message was not handled by the saga
             }
@@ -102,7 +102,7 @@
             }
         }
 
-        internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string messageType)
+        internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string? messageType)
         {
             headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine);
 
@@ -149,7 +149,7 @@
 
         public class CaptureSagaStateRegistration : RegisterStep
         {
-            public CaptureSagaStateRegistration(string endpointName, Func<object, Dictionary<string, string>> customSagaEntitySerialization)
+            public CaptureSagaStateRegistration(string endpointName, Func<object, Dictionary<string, string>>? customSagaEntitySerialization)
                 : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes", b => new CaptureSagaStateBehavior(endpointName, b.GetRequiredService<ServiceControlBackend>(), customSagaEntitySerialization))
             {
                 InsertBefore("InvokeSaga");

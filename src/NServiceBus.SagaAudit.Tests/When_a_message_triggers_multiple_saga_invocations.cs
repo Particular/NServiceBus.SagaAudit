@@ -110,7 +110,7 @@
 
             public static IIncomingPhysicalMessageContext Create() => Create<IIncomingPhysicalMessageContext, PhysicalContextProxy>();
 
-            protected override object Invoke(MethodInfo targetMethod, object[] args) => targetMethod.Name switch
+            protected override object? Invoke(MethodInfo? targetMethod, object?[]? args) => targetMethod!.Name switch
             {
                 "get_Extensions" => Extensions,
                 _ => throw new NotImplementedException(targetMethod.Name)
@@ -127,7 +127,7 @@
             public string AuditAddress => "audit";
             public TimeSpan? TimeToBeReceived => null;
             public Dictionary<string, string> AuditMetadata { get; } = [];
-            public AuditAction AuditAction { get; set; }
+            public AuditAction AuditAction { get; set; } = null!;
             public IAuditActionContext PreventChanges() => throw new NotImplementedException();
         }
 

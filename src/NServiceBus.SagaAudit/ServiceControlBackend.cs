@@ -27,7 +27,8 @@
 
             var headers = new Dictionary<string, string>
             {
-                [Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName,
+                // FullName is only null for generic type parameters, never for the runtime type of an instance
+                [Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName!,
                 [Headers.ContentType] = ContentTypes.Json,
                 [Headers.ReplyToAddress] = localAddress,
                 [Headers.MessageIntent] = sendIntent
@@ -38,7 +39,8 @@
                 var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), headers, body);
 
                 var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) });
-                await messageSender.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken).ConfigureAwait(false);
+                // Start assigns the dispatcher before the endpoint processes any message
+                await messageSender!.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (!ex.IsCausedBy(cancellationToken))
             {
@@ -74,7 +76,7 @@ Please ensure that the specified queue is correct.";
             }
         }
 
-        IMessageDispatcher messageSender;
+        IMessageDispatcher? messageSender;
 
         string destinationQueue;
         string localAddress;

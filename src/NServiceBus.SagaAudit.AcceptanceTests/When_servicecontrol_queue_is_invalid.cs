@@ -33,7 +33,7 @@ class When_servicecontrol_queue_is_invalid : NServiceBusAcceptanceTest
     {
         public class MySagaData : ContainSagaData
         {
-            public string CorrelationId { get; set; }
+            public string CorrelationId { get; set; } = null!;
         }
 
         protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper) => mapper.MapSaga(s => s.CorrelationId).ToMessage<MyMessage>(m => m.CorrelationId);
@@ -43,6 +43,6 @@ class When_servicecontrol_queue_is_invalid : NServiceBusAcceptanceTest
 
     public class MyMessage : IMessage
     {
-        public string CorrelationId { get; set; }
+        public string CorrelationId { get; set; } = null!;
     }
 }

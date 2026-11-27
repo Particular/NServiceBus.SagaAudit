@@ -20,7 +20,7 @@
         protected override void Setup(FeatureConfigurationContext context)
         {
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
-            var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>>(SettingsKeys.CustomSerialization);
+            var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>?>(SettingsKeys.CustomSerialization);
 
             context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");

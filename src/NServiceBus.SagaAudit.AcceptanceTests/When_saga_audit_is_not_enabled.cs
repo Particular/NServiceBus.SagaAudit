@@ -38,7 +38,7 @@ public class When_saga_audit_is_not_enabled : NServiceBusAcceptanceTest
     class Context : ScenarioContext
     {
         public bool MessageAudited { get; set; }
-        public IReadOnlyDictionary<string, string> Headers { get; set; }
+        public IReadOnlyDictionary<string, string> Headers { get; set; } = null!;
     }
 
     class EndpointWithASaga : EndpointConfigurationBuilder
