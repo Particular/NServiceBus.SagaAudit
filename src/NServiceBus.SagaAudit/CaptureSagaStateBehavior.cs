@@ -47,7 +47,7 @@
                 return; // Message was not handled by the saga
             }
 
-            if (activeSagaInstance.Instance.Entity == null)
+            if (activeSagaInstance.Instance.Entity is null)
             {
                 return; // Message was not handled by the saga
             }
@@ -92,7 +92,7 @@
 
         internal string SerializeSagaState(IContainSagaData sagaData)
         {
-            if (customSagaEntitySerialization != null)
+            if (customSagaEntitySerialization is not null)
             {
                 return JsonSerializer.Serialize(customSagaEntitySerialization(sagaData));
             }

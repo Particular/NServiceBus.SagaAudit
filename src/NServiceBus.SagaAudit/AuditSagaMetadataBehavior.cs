@@ -10,12 +10,12 @@
         {
             if (context.Extensions.TryGet<SagaAuditState>(out var state))
             {
-                if (state.InvokedSagas != null)
+                if (state.InvokedSagas is not null)
                 {
                     context.AuditMetadata[SagaAuditHeaders.InvokedSagas] = state.InvokedSagas;
                 }
 
-                if (state.SagaStateChanges != null)
+                if (state.SagaStateChanges is not null)
                 {
                     context.AuditMetadata[SagaAuditHeaders.SagaStateChange] = state.SagaStateChanges;
                 }

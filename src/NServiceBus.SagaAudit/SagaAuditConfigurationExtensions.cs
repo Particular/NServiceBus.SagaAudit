@@ -21,7 +21,7 @@
         {
             config.EnableFeature<SagaAuditFeature>();
             config.GetSettings().Set(SettingsKeys.SagaAuditQueue, serviceControlQueue);
-            if (customSagaEntitySerialization != null)
+            if (customSagaEntitySerialization is not null)
             {
                 config.GetSettings().Set(SettingsKeys.CustomSerialization, customSagaEntitySerialization);
             }

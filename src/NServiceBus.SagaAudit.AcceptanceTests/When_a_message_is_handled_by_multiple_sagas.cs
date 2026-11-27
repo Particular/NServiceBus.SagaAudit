@@ -22,7 +22,7 @@ public class When_a_message_is_handled_by_multiple_sagas : NServiceBusAcceptance
             .WithEndpoint<AuditSpy>()
             .WithEndpoint<FakeServiceControl>()
             .WithEndpoint<EndpointWithSagas>(b => b.When((session, ctx) => session.SendLocal(new StartSagas { Id = ctx.TestRunId })))
-            .Done(c => c.AuditedHeaders != null && c.SagaUpdatesReceived >= 2)
+            .Done(c => c.AuditedHeaders is not null && c.SagaUpdatesReceived >= 2)
             .Run();
 
         var expectedInvokedSagas = new[]

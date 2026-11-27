@@ -19,7 +19,7 @@
         void AppendMessageToState(IOutgoingLogicalMessageContext context)
         {
             var logicalMessage = context.Message;
-            if (logicalMessage == null)
+            if (logicalMessage is null)
             {
                 //this can happen on control messages
                 return;

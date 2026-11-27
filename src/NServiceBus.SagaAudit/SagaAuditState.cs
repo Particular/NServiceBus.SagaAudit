@@ -12,6 +12,6 @@
 
         public void AddSagaStateChange(Guid sagaId, string stateChange) => SagaStateChanges = Append(SagaStateChanges, $"{sagaId}:{stateChange}");
 
-        static string Append(string current, string entry) => current == null ? entry : $"{current};{entry}";
+        static string Append(string current, string entry) => current is null ? entry : $"{current};{entry}";
     }
 }
