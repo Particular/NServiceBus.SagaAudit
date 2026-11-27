@@ -21,14 +21,14 @@
             localAddress = receiveAddresses.MainReceiveAddress;
         }
 
-        async Task Send(object messageToSend, TimeSpan timeToBeReceived, TransportTransaction transportTransaction, CancellationToken cancellationToken)
+        public async Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
         {
-            var body = JsonSerializer.SerializeToUtf8Bytes(messageToSend);
+            var body = Serialize(messageToSend);
 
             var headers = new Dictionary<string, string>
             {
-                // FullName is only null for generic type parameters, never for the runtime type of an instance
-                [Headers.EnclosedMessageTypes] = messageToSend.GetType().FullName!,
+                // FullName is only null for generic type parameters, never for a closed type
+                [Headers.EnclosedMessageTypes] = typeof(SagaUpdatedMessage).FullName!,
                 [Headers.ContentType] = ContentTypes.Json,
                 [Headers.ReplyToAddress] = localAddress,
                 [Headers.MessageIntent] = sendIntent
@@ -38,7 +38,7 @@
             {
                 var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString(), headers, body);
 
-                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) });
+                var operation = new TransportOperation(outgoingMessage, new UnicastAddressTag(destinationQueue), new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(TimeSpan.MaxValue) });
                 // Start assigns the dispatcher before the endpoint processes any message
                 await messageSender!.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken).ConfigureAwait(false);
             }
@@ -48,10 +48,7 @@
             }
         }
 
-        public Task Send(SagaUpdatedMessage messageToSend, TransportTransaction transportTransaction, CancellationToken cancellationToken = default)
-        {
-            return Send(messageToSend, TimeSpan.MaxValue, transportTransaction, cancellationToken);
-        }
+        internal static byte[] Serialize(SagaUpdatedMessage message) => JsonSerializer.SerializeToUtf8Bytes(message, SagaAuditJsonContext.Default.SagaUpdatedMessage);
 
         public async Task Start(IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {

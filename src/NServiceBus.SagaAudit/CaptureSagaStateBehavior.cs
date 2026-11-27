@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Text.Json;
+    using System.Text.Json.Serialization.Metadata;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -15,13 +17,15 @@
     {
         ServiceControlBackend backend;
         Func<object, Dictionary<string, string>>? customSagaEntitySerialization;
+        JsonSerializerOptions? serializerOptions;
         string endpointName;
 
-        public CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>>? customSagaEntitySerialization)
+        public CaptureSagaStateBehavior(string endpointName, ServiceControlBackend backend, Func<object, Dictionary<string, string>>? customSagaEntitySerialization, JsonSerializerOptions? serializerOptions)
         {
             this.endpointName = endpointName;
             this.backend = backend;
             this.customSagaEntitySerialization = customSagaEntitySerialization;
+            this.serializerOptions = serializerOptions;
         }
 
         public Task Invoke(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
@@ -94,13 +98,33 @@
         {
             if (customSagaEntitySerialization is not null)
             {
-                return JsonSerializer.Serialize(customSagaEntitySerialization(sagaData));
+                return JsonSerializer.Serialize(customSagaEntitySerialization(sagaData), SagaAuditJsonContext.Default.DictionaryStringString);
             }
-            else
-            {
-                return JsonSerializer.Serialize(sagaData, sagaData.GetType());
-            }
+
+            var sagaDataType = sagaData.GetType();
+            var typeInfo = ResolveTypeInfo(serializerOptions, sagaDataType);
+
+            return typeInfo is not null
+                ? JsonSerializer.Serialize(sagaData, typeInfo)
+                : SerializeWithReflection(sagaData, sagaDataType, serializerOptions);
         }
+
+        static JsonTypeInfo? ResolveTypeInfo(JsonSerializerOptions? options, Type sagaDataType)
+        {
+            var typeInfo = options?.TypeInfoResolver?.GetTypeInfo(sagaDataType, options);
+            if (typeInfo is not null)
+            {
+                return typeInfo;
+            }
+
+            return JsonSerializer.IsReflectionEnabledByDefault
+                ? null
+                : throw new InvalidOperationException($"No JSON metadata was found for the saga data type '{sagaDataType.FullName}'. Pass JsonSerializerOptions whose TypeInfoResolver includes it to AuditSagaStateChanges.");
+        }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Only called when System.Text.Json reflection serialization is enabled.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Only called when System.Text.Json reflection serialization is enabled.")]
+        static string SerializeWithReflection(object sagaData, Type sagaDataType, JsonSerializerOptions? options) => JsonSerializer.Serialize(sagaData, sagaDataType, options);
 
         internal static SagaChangeInitiator BuildSagaChangeInitiatorMessage(IReadOnlyDictionary<string, string> headers, string messageId, string? messageType)
         {
@@ -149,8 +173,8 @@
 
         public class CaptureSagaStateRegistration : RegisterStep
         {
-            public CaptureSagaStateRegistration(string endpointName, Func<object, Dictionary<string, string>>? customSagaEntitySerialization)
-                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes", b => new CaptureSagaStateBehavior(endpointName, b.GetRequiredService<ServiceControlBackend>(), customSagaEntitySerialization))
+            public CaptureSagaStateRegistration(string endpointName, Func<object, Dictionary<string, string>>? customSagaEntitySerialization, JsonSerializerOptions? serializerOptions)
+                : base("CaptureSagaState", typeof(CaptureSagaStateBehavior), "Records saga state changes", b => new CaptureSagaStateBehavior(endpointName, b.GetRequiredService<ServiceControlBackend>(), customSagaEntitySerialization, serializerOptions))
             {
                 InsertBefore("InvokeSaga");
             }

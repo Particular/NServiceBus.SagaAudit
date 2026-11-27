@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -21,10 +22,11 @@
         {
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
             var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>?>(SettingsKeys.CustomSerialization);
+            var serializerOptions = context.Settings.GetOrDefault<JsonSerializerOptions?>(SettingsKeys.SerializerOptions);
 
             context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");
-            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization));
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization, serializerOptions));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditSagaMetadataBehavior(), "Adds saga information to audit messages");
 

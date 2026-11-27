@@ -86,7 +86,7 @@
 
         static string SerializeUsingBehavior(IContainSagaData data)
         {
-            var behavior = new CaptureSagaStateBehavior("FakeEndpointName", null!, null);
+            var behavior = new CaptureSagaStateBehavior("FakeEndpointName", null!, null, null);
             return behavior.SerializeSagaState(data);
         }
 
