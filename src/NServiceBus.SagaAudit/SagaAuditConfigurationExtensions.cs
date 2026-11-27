@@ -46,6 +46,7 @@
         /// </para>
         /// <para>
         /// When trimming or Native AOT is enabled, set <see cref="JsonSerializerOptions.TypeInfoResolver"/> to provide metadata for every saga data type, for example with a source-generated context that lists them.
+        /// The endpoint fails to start when these options provide no metadata for a saga data type, because serializing its saga state would fail every message that saga handles.
         /// </para>
         /// </remarks>
         public static void AuditSagaStateChanges(this EndpointConfiguration config, string serviceControlQueue, JsonSerializerOptions serializerOptions)

@@ -29,9 +29,19 @@
             if (customSagaEntitySerialization is null)
             {
                 var sagaDataTypes = context.Settings.Get<NServiceBus.Sagas.SagaMetadataCollection>().Select(saga => saga.SagaEntityType);
-                foreach (var problem in SagaStateShapeCheck.FindProblems(sagaDataTypes, serializerOptions))
+                var problems = SagaStateShapeCheck.FindProblems(sagaDataTypes, serializerOptions).ToList();
+
+                // Only the serializer options overload can fail startup, so upgrading cannot stop an endpoint that runs today
+                var failStartup = serializerOptions is not null;
+                foreach (var problem in problems.Where(problem => !failStartup || !problem.IsMissingMetadata))
                 {
-                    Logger.Warn(problem);
+                    Logger.Warn(problem.Message);
+                }
+
+                var missingMetadata = problems.Where(problem => failStartup && problem.IsMissingMetadata).Select(problem => problem.Message).ToList();
+                if (missingMetadata.Count > 0)
+                {
+                    throw new InvalidOperationException(string.Join(Environment.NewLine, missingMetadata));
                 }
             }
 

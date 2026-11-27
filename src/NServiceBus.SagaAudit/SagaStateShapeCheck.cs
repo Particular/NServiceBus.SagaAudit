@@ -9,7 +9,7 @@ namespace NServiceBus.SagaAudit
 
     static class SagaStateShapeCheck
     {
-        public static IEnumerable<string> FindProblems(IEnumerable<Type> sagaDataTypes, JsonSerializerOptions? options)
+        public static IEnumerable<SagaStateProblem> FindProblems(IEnumerable<Type> sagaDataTypes, JsonSerializerOptions? options)
         {
             // Resolving metadata can make options read-only, and the user's instance might still be configured by other components
             var probeOptions = options is null ? null : new JsonSerializerOptions(options);
@@ -19,15 +19,15 @@ namespace NServiceBus.SagaAudit
                 var typeInfo = TryGetTypeInfo(sagaDataType, probeOptions);
                 if (typeInfo is null)
                 {
-                    yield return $"No JSON metadata was found for the saga data type '{sagaDataType.FullName}', so its saga state changes cannot be sent to ServiceControl. Pass JsonSerializerOptions whose TypeInfoResolver includes it to AuditSagaStateChanges.";
+                    yield return new SagaStateProblem(true, $"No JSON metadata was found for the saga data type '{sagaDataType.FullName}', so its saga state changes cannot be serialized and processing messages for that saga fails. Pass JsonSerializerOptions whose TypeInfoResolver includes it to AuditSagaStateChanges.");
                 }
                 else if (typeInfo.Kind != JsonTypeInfoKind.Object)
                 {
-                    yield return $"The saga data type '{sagaDataType.FullName}' does not serialize as a JSON object (metadata kind '{typeInfo.Kind}'), for example because a custom converter handles it. ServicePulse only displays saga state that is a JSON object.";
+                    yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' does not serialize as a JSON object (metadata kind '{typeInfo.Kind}'), for example because a custom converter handles it. ServicePulse only displays saga state that is a JSON object.");
                 }
                 else if (FindRenamedStandardProperties(typeInfo) is { Length: > 0 } renamed)
                 {
-                    yield return $"The saga data type '{sagaDataType.FullName}' writes {string.Join(", ", renamed)}. ServicePulse hides the standard saga data properties only under their declared names, so it shows them as part of the saga state.";
+                    yield return new SagaStateProblem(false, $"The saga data type '{sagaDataType.FullName}' writes {string.Join(", ", renamed)}. ServicePulse hides the standard saga data properties only under their declared names, so it shows them as part of the saga state.");
                 }
             }
         }
@@ -75,4 +75,6 @@ namespace NServiceBus.SagaAudit
             return options.GetTypeInfo(sagaDataType);
         }
     }
+
+    readonly record struct SagaStateProblem(bool IsMissingMetadata, string Message);
 }

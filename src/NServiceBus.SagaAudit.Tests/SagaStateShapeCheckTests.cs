@@ -1,6 +1,7 @@
 namespace NServiceBus.SagaAudit.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
@@ -11,18 +12,18 @@ namespace NServiceBus.SagaAudit.Tests
     {
         [Test]
         public void Should_accept_saga_data_serialized_as_an_object_with_default_options() =>
-            Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], null), Is.Empty);
+            Assert.That(FindProblemMessages([typeof(PlainSagaData)], null), Is.Empty);
 
         [Test]
         public void Should_accept_saga_data_with_metadata_from_the_serializer_options() =>
-            Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckSagaDataJsonContext.Default.Options), Is.Empty);
+            Assert.That(FindProblemMessages([typeof(PlainSagaData)], ShapeCheckSagaDataJsonContext.Default.Options), Is.Empty);
 
         [Test]
         public void Should_report_saga_data_that_a_converter_in_the_options_writes_as_a_non_object()
         {
             var options = new JsonSerializerOptions { Converters = { new WriteAsStringConverter() } };
 
-            var problems = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], options).ToList();
+            var problems = FindProblemMessages([typeof(PlainSagaData)], options).ToList();
 
             Assert.That(problems, Has.Count.EqualTo(1));
             Assert.That(problems[0], Does.Contain(typeof(PlainSagaData).FullName).And.Contain("does not serialize as a JSON object"));
@@ -30,30 +31,30 @@ namespace NServiceBus.SagaAudit.Tests
 
         [Test]
         public void Should_report_saga_data_with_a_converter_attribute() =>
-            Assert.That(SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], null).Single(), Does.Contain("does not serialize as a JSON object"));
+            Assert.That(FindProblemMessages([typeof(SagaDataWithTypeLevelConverter)], null).Single(), Does.Contain("does not serialize as a JSON object"));
 
         [Test]
         public void Should_report_saga_data_without_metadata_in_the_serializer_options() =>
-            Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckOtherJsonContext.Default.Options).Single(), Does.Contain("No JSON metadata"));
+            Assert.That(FindProblemMessages([typeof(PlainSagaData)], ShapeCheckOtherJsonContext.Default.Options).Single(), Does.Contain("No JSON metadata"));
 
         [Test]
         public void Should_report_standard_properties_renamed_by_a_naming_policy()
         {
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-            var problem = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], options).Single();
+            var problem = FindProblemMessages([typeof(PlainSagaData)], options).Single();
 
             Assert.That(problem, Does.Contain("'Id' as 'id'").And.Contain("'Originator' as 'originator'").And.Contain("'OriginalMessageId' as 'originalMessageId'"));
         }
 
         [Test]
         public void Should_report_standard_properties_renamed_by_source_generated_metadata() =>
-            Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckSnakeCaseJsonContext.Default.Options).Single(), Does.Contain("'OriginalMessageId' as 'original_message_id'"));
+            Assert.That(FindProblemMessages([typeof(PlainSagaData)], ShapeCheckSnakeCaseJsonContext.Default.Options).Single(), Does.Contain("'OriginalMessageId' as 'original_message_id'"));
 
         [Test]
         public void Should_report_a_standard_property_renamed_by_an_attribute()
         {
-            var problem = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], null).Single();
+            var problem = FindProblemMessages([typeof(SagaDataWithRenamedId)], null).Single();
 
             Assert.That(problem, Does.Contain("'Id' as 'sagaId'").And.Not.Contain("Originator"));
         }
@@ -64,8 +65,8 @@ namespace NServiceBus.SagaAudit.Tests
             var reflectionOptions = new JsonSerializerOptions();
             var resolverOptions = new JsonSerializerOptions { TypeInfoResolver = ShapeCheckSagaDataJsonContext.Default };
 
-            _ = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], reflectionOptions).ToList();
-            _ = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], resolverOptions).ToList();
+            _ = FindProblemMessages([typeof(PlainSagaData)], reflectionOptions).ToList();
+            _ = FindProblemMessages([typeof(PlainSagaData)], resolverOptions).ToList();
 
             using (Assert.EnterMultipleScope())
             {
@@ -76,6 +77,24 @@ namespace NServiceBus.SagaAudit.Tests
 
             Assert.DoesNotThrow(() => reflectionOptions.Converters.Add(new WriteAsStringConverter()));
         }
+
+        [Test]
+        public void Should_flag_only_missing_metadata_as_missing_metadata()
+        {
+            var missing = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckOtherJsonContext.Default.Options).Single();
+            var notAnObject = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], null).Single();
+            var renamed = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], null).Single();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(missing.IsMissingMetadata, Is.True);
+                Assert.That(notAnObject.IsMissingMetadata, Is.False);
+                Assert.That(renamed.IsMissingMetadata, Is.False);
+            }
+        }
+
+        static IEnumerable<string> FindProblemMessages(IEnumerable<Type> sagaDataTypes, JsonSerializerOptions? options) =>
+            SagaStateShapeCheck.FindProblems(sagaDataTypes, options).Select(problem => problem.Message);
 
         public class PlainSagaData : ContainSagaData
         {
