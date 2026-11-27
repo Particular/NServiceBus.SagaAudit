@@ -24,7 +24,17 @@
             this.customSagaEntitySerialization = customSagaEntitySerialization;
         }
 
-        public async Task Invoke(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
+        public Task Invoke(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
+        {
+            if (context.MessageHandler.Instance is not Saga)
+            {
+                return next(context);
+            }
+
+            return InvokeSagaHandler(context, next);
+        }
+
+        async Task InvokeSagaHandler(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
         {
             var sagaAudit = new SagaUpdatedMessage();
 
