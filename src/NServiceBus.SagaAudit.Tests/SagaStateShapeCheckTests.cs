@@ -36,6 +36,28 @@ namespace NServiceBus.SagaAudit.Tests
         public void Should_report_saga_data_without_metadata_in_the_serializer_options() =>
             Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckOtherJsonContext.Default.Options).Single(), Does.Contain("No JSON metadata"));
 
+        [Test]
+        public void Should_report_standard_properties_renamed_by_a_naming_policy()
+        {
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+            var problem = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], options).Single();
+
+            Assert.That(problem, Does.Contain("'Id' as 'id'").And.Contain("'Originator' as 'originator'").And.Contain("'OriginalMessageId' as 'originalMessageId'"));
+        }
+
+        [Test]
+        public void Should_report_standard_properties_renamed_by_source_generated_metadata() =>
+            Assert.That(SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckSnakeCaseJsonContext.Default.Options).Single(), Does.Contain("'OriginalMessageId' as 'original_message_id'"));
+
+        [Test]
+        public void Should_report_a_standard_property_renamed_by_an_attribute()
+        {
+            var problem = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], null).Single();
+
+            Assert.That(problem, Does.Contain("'Id' as 'sagaId'").And.Not.Contain("Originator"));
+        }
+
         public class PlainSagaData : ContainSagaData
         {
             public Guid DataId { get; set; }
@@ -58,5 +80,15 @@ namespace NServiceBus.SagaAudit.Tests
 
         [JsonSerializable(typeof(Guid))]
         partial class ShapeCheckOtherJsonContext : JsonSerializerContext;
+
+        [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
+        [JsonSerializable(typeof(PlainSagaData))]
+        partial class ShapeCheckSnakeCaseJsonContext : JsonSerializerContext;
+
+        public class SagaDataWithRenamedId : ContainSagaData
+        {
+            [JsonPropertyName("sagaId")]
+            public override Guid Id { get; set; }
+        }
     }
 }
