@@ -29,11 +29,25 @@
         }
 
         /// <summary>
-        /// Sets the ServiceControl queue address and the options used to serialize saga data.
+        /// Sets the ServiceControl queue address and the options used to serialize the saga state that is sent to ServiceControl.
         /// </summary>
         /// <param name="config">The endpoint's configuration to modify</param>
         /// <param name="serviceControlQueue">ServiceControl queue address.</param>
-        /// <param name="serializerOptions">The options used to serialize saga data. When trimming or Native AOT is enabled, set a <see cref="JsonSerializerOptions.TypeInfoResolver"/> that provides metadata for every saga data type.</param>
+        /// <param name="serializerOptions">The options used to serialize saga data into the saga state that ServiceControl stores and ServicePulse displays.</param>
+        /// <remarks>
+        /// <para>
+        /// These options only affect the saga state sent to ServiceControl. They are independent of how the saga persister stores saga data.
+        /// Do not reuse the persister's serializer options, converters, or <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> unless they produce the shape described below.
+        /// </para>
+        /// <para>
+        /// ServicePulse expects each saga data type to serialize as a JSON object whose property names match the property names declared on the type.
+        /// Avoid converters that write saga data in another shape and naming policies that rename properties.
+        /// The endpoint logs a warning at startup for saga data types that do not serialize as a JSON object.
+        /// </para>
+        /// <para>
+        /// When trimming or Native AOT is enabled, set <see cref="JsonSerializerOptions.TypeInfoResolver"/> to provide metadata for every saga data type, for example with a source-generated context that lists them.
+        /// </para>
+        /// </remarks>
         public static void AuditSagaStateChanges(this EndpointConfiguration config, string serviceControlQueue, JsonSerializerOptions serializerOptions)
         {
             ArgumentNullException.ThrowIfNull(config);
