@@ -11,7 +11,7 @@
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using Transport;
 
-    class CaptureSagaStateBehavior : Behavior<IInvokeHandlerContext>
+    class CaptureSagaStateBehavior : IBehavior<IInvokeHandlerContext, IInvokeHandlerContext>
     {
         ServiceControlBackend backend;
         Func<object, Dictionary<string, string>> customSagaEntitySerialization;
@@ -24,13 +24,13 @@
             this.customSagaEntitySerialization = customSagaEntitySerialization;
         }
 
-        public override async Task Invoke(IInvokeHandlerContext context, Func<Task> next)
+        public async Task Invoke(IInvokeHandlerContext context, Func<IInvokeHandlerContext, Task> next)
         {
             var sagaAudit = new SagaUpdatedMessage();
 
             context.Extensions.Set(sagaAudit);
 
-            await next().ConfigureAwait(false);
+            await next(context).ConfigureAwait(false);
 
             if (!context.Extensions.TryGet(out ActiveSagaInstance activeSagaInstance))
             {
@@ -40,6 +40,11 @@
             if (activeSagaInstance.Instance.Entity == null)
             {
                 return; // Message was not handled by the saga
+            }
+
+            if (context.Extensions.TryGet<SagaAuditState>(out var auditState))
+            {
+                auditState.AddInvokedSaga(activeSagaInstance.Instance.GetType().FullName, activeSagaInstance.Instance.Entity.Id);
             }
 
             await AuditSaga(activeSagaInstance, sagaAudit, context).ConfigureAwait(false);
@@ -115,11 +120,6 @@
 
         static void AssignSagaStateChangeCausedByMessage(IInvokeHandlerContext context, ActiveSagaInstance sagaInstance, SagaUpdatedMessage sagaAudit)
         {
-            if (!context.MessageHeaders.TryGetValue(SagaAuditHeaders.SagaStateChange, out var sagaStateChange))
-            {
-                sagaStateChange = string.Empty;
-            }
-
             var stateChange = "Updated";
 
             if (sagaInstance.IsNew)
@@ -131,13 +131,10 @@
                 stateChange = "Completed";
             }
 
-            if (!string.IsNullOrEmpty(sagaStateChange))
+            if (context.Extensions.TryGet<SagaAuditState>(out var auditState))
             {
-                sagaStateChange += ";";
+                auditState.AddSagaStateChange(sagaAudit.SagaId, stateChange);
             }
-            sagaStateChange += $"{sagaAudit.SagaId}:{stateChange}";
-
-            context.Headers[SagaAuditHeaders.SagaStateChange] = sagaStateChange;
         }
 
         public class CaptureSagaStateRegistration : RegisterStep
