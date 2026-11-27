@@ -25,29 +25,30 @@
             var serviceControlQueue = context.Settings.Get<string>(SettingsKeys.SagaAuditQueue);
             var customSagaEntitySerialization = context.Settings.GetOrDefault<Func<object, Dictionary<string, string>>?>(SettingsKeys.CustomSerialization);
             var serializerOptions = context.Settings.GetOrDefault<JsonSerializerOptions?>(SettingsKeys.SerializerOptions);
+            var sagaStateSerializer = new SagaStateSerializer(serializerOptions);
 
             if (customSagaEntitySerialization is null)
             {
                 var sagaDataTypes = context.Settings.Get<NServiceBus.Sagas.SagaMetadataCollection>().Select(saga => saga.SagaEntityType);
-                var problems = SagaStateShapeCheck.FindProblems(sagaDataTypes, serializerOptions).ToList();
+                var problems = SagaStateShapeCheck.FindProblems(sagaDataTypes, sagaStateSerializer).ToList();
 
                 // Only the serializer options overload can fail startup, so upgrading cannot stop an endpoint that runs today
                 var failStartup = serializerOptions is not null;
-                foreach (var problem in problems.Where(problem => !failStartup || !problem.IsMissingMetadata))
+                foreach (var problem in problems.Where(problem => !failStartup || !problem.PreventsSerialization))
                 {
                     Logger.Warn(problem.Message);
                 }
 
-                var missingMetadata = problems.Where(problem => failStartup && problem.IsMissingMetadata).Select(problem => problem.Message).ToList();
-                if (missingMetadata.Count > 0)
+                var serializationFailures = problems.Where(problem => failStartup && problem.PreventsSerialization).Select(problem => problem.Message).ToList();
+                if (serializationFailures.Count > 0)
                 {
-                    throw new InvalidOperationException(string.Join(Environment.NewLine, missingMetadata));
+                    throw new InvalidOperationException(string.Join(Environment.NewLine, serializationFailures));
                 }
             }
 
             context.Services.AddSingleton(c => new ServiceControlBackend(serviceControlQueue, c.GetRequiredService<ReceiveAddresses>()));
             context.Pipeline.Register("InitializeSagaAuditState", new InitializeSagaAuditStateBehavior(), "Creates the per-message state that carries saga information to the audit message");
-            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization, serializerOptions));
+            context.Pipeline.Register(new CaptureSagaStateBehavior.CaptureSagaStateRegistration(context.Settings.EndpointName(), customSagaEntitySerialization, sagaStateSerializer));
             context.Pipeline.Register("CaptureSagaResultingMessages", new CaptureSagaResultingMessagesBehavior(), "Reports the messages sent by sagas to ServiceControl");
             context.Pipeline.Register("AuditInvokedSaga", new AuditSagaMetadataBehavior(), "Adds saga information to audit messages");
 

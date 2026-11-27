@@ -79,22 +79,34 @@ namespace NServiceBus.SagaAudit.Tests
         }
 
         [Test]
-        public void Should_flag_only_missing_metadata_as_missing_metadata()
+        public void Should_flag_only_serialization_failures_as_preventing_serialization()
         {
-            var missing = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], ShapeCheckOtherJsonContext.Default.Options).Single();
-            var notAnObject = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], null).Single();
-            var renamed = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], null).Single();
+            var missing = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], new SagaStateSerializer(ShapeCheckOtherJsonContext.Default.Options)).Single();
+            var notAnObject = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithTypeLevelConverter)], new SagaStateSerializer(null)).Single();
+            var renamed = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithRenamedId)], new SagaStateSerializer(null)).Single();
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(missing.IsMissingMetadata, Is.True);
-                Assert.That(notAnObject.IsMissingMetadata, Is.False);
-                Assert.That(renamed.IsMissingMetadata, Is.False);
+                Assert.That(missing.PreventsSerialization, Is.True);
+                Assert.That(notAnObject.PreventsSerialization, Is.False);
+                Assert.That(renamed.PreventsSerialization, Is.False);
+            }
+        }
+
+        [Test]
+        public void Should_report_an_invalid_contract_instead_of_throwing()
+        {
+            var problem = SagaStateShapeCheck.FindProblems([typeof(SagaDataWithCollidingNames)], new SagaStateSerializer(null)).Single();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(problem.PreventsSerialization, Is.True);
+                Assert.That(problem.Message, Does.Contain(typeof(SagaDataWithCollidingNames).FullName).And.Contain("cannot be serialized"));
             }
         }
 
         static IEnumerable<string> FindProblemMessages(IEnumerable<Type> sagaDataTypes, JsonSerializerOptions? options) =>
-            SagaStateShapeCheck.FindProblems(sagaDataTypes, options).Select(problem => problem.Message);
+            SagaStateShapeCheck.FindProblems(sagaDataTypes, new SagaStateSerializer(options)).Select(problem => problem.Message);
 
         public class PlainSagaData : ContainSagaData
         {
@@ -122,6 +134,15 @@ namespace NServiceBus.SagaAudit.Tests
         [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
         [JsonSerializable(typeof(PlainSagaData))]
         partial class ShapeCheckSnakeCaseJsonContext : JsonSerializerContext;
+
+        public class SagaDataWithCollidingNames : ContainSagaData
+        {
+            [JsonPropertyName("same")]
+            public int First { get; set; }
+
+            [JsonPropertyName("same")]
+            public int Second { get; set; }
+        }
 
         public class SagaDataWithRenamedId : ContainSagaData
         {

@@ -47,7 +47,7 @@ namespace NServiceBus.SagaAudit.Tests
         }
 
         static string Serialize(SagaData sagaData, Func<object, Dictionary<string, string>>? customSagaEntitySerialization = null, JsonSerializerOptions? serializerOptions = null)
-            => new CaptureSagaStateBehavior("FakeEndpointName", null!, customSagaEntitySerialization, serializerOptions).SerializeSagaState(sagaData);
+            => new CaptureSagaStateBehavior("FakeEndpointName", null!, customSagaEntitySerialization, new SagaStateSerializer(serializerOptions)).SerializeSagaState(sagaData);
 
         static readonly Guid DataId = Guid.Parse("6a3c3a5e-55f0-4c9b-9f3c-2f2f0a7f9b11");
 
