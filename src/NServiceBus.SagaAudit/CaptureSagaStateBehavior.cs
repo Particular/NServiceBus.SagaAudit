@@ -11,7 +11,7 @@
     using ServiceControl.EndpointPlugin.Messages.SagaState;
     using Transport;
 
-    class CaptureSagaStateBehavior : IBehavior<IInvokeHandlerContext, IInvokeHandlerContext>
+    sealed class CaptureSagaStateBehavior : IBehavior<IInvokeHandlerContext, IInvokeHandlerContext>
     {
         ServiceControlBackend backend;
         Func<object, Dictionary<string, string>> customSagaEntitySerialization;

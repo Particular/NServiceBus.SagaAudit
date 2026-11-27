@@ -8,7 +8,7 @@
     using Routing;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
 
-    class CaptureSagaResultingMessagesBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
+    sealed class CaptureSagaResultingMessagesBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
         public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
         {

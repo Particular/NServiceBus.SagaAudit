@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Pipeline;
 
-    class AuditSagaMetadataBehavior : IBehavior<IAuditContext, IAuditContext>
+    sealed class AuditSagaMetadataBehavior : IBehavior<IAuditContext, IAuditContext>
     {
         public Task Invoke(IAuditContext context, Func<IAuditContext, Task> next)
         {

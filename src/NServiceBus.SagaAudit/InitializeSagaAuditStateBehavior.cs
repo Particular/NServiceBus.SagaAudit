@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Pipeline;
 
-    class InitializeSagaAuditStateBehavior : IBehavior<IIncomingPhysicalMessageContext, IIncomingPhysicalMessageContext>
+    sealed class InitializeSagaAuditStateBehavior : IBehavior<IIncomingPhysicalMessageContext, IIncomingPhysicalMessageContext>
     {
         public Task Invoke(IIncomingPhysicalMessageContext context, Func<IIncomingPhysicalMessageContext, Task> next)
         {
