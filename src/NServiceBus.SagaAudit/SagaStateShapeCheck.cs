@@ -11,9 +11,12 @@ namespace NServiceBus.SagaAudit
     {
         public static IEnumerable<string> FindProblems(IEnumerable<Type> sagaDataTypes, JsonSerializerOptions? options)
         {
+            // Resolving metadata can make options read-only, and the user's instance might still be configured by other components
+            var probeOptions = options is null ? null : new JsonSerializerOptions(options);
+
             foreach (var sagaDataType in sagaDataTypes)
             {
-                var typeInfo = TryGetTypeInfo(sagaDataType, options);
+                var typeInfo = TryGetTypeInfo(sagaDataType, probeOptions);
                 if (typeInfo is null)
                 {
                     yield return $"No JSON metadata was found for the saga data type '{sagaDataType.FullName}', so its saga state changes cannot be sent to ServiceControl. Pass JsonSerializerOptions whose TypeInfoResolver includes it to AuditSagaStateChanges.";

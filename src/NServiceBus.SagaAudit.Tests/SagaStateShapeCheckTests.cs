@@ -58,6 +58,25 @@ namespace NServiceBus.SagaAudit.Tests
             Assert.That(problem, Does.Contain("'Id' as 'sagaId'").And.Not.Contain("Originator"));
         }
 
+        [Test]
+        public void Should_not_modify_options_shared_with_other_components()
+        {
+            var reflectionOptions = new JsonSerializerOptions();
+            var resolverOptions = new JsonSerializerOptions { TypeInfoResolver = ShapeCheckSagaDataJsonContext.Default };
+
+            _ = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], reflectionOptions).ToList();
+            _ = SagaStateShapeCheck.FindProblems([typeof(PlainSagaData)], resolverOptions).ToList();
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(reflectionOptions.IsReadOnly, Is.False);
+                Assert.That(reflectionOptions.TypeInfoResolver, Is.Null);
+                Assert.That(resolverOptions.IsReadOnly, Is.False);
+            }
+
+            Assert.DoesNotThrow(() => reflectionOptions.Converters.Add(new WriteAsStringConverter()));
+        }
+
         public class PlainSagaData : ContainSagaData
         {
             public Guid DataId { get; set; }
